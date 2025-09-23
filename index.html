@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화 정보 및 갤러리</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 헤더 영역 -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>영화 정보 및 갤러리</h1>
+                <span class="subtitle">www.movieCommunity.com</span>
+            </div>
+            <div class="search-area">
+                <input type="text" id="searchInput" placeholder="영화/배우/갤러리 검색...">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#" class="active" data-page="movies">영화</a></li>
+                <li><a href="#" data-page="gallery">갤러리</a></li>
+            </ul>
+        </nav>
+    </header>
+
+
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main id="main-content">
+        <!-- 영화 목록 페이지 -->
+        <section id="movies" class="page active">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Best Movies in Theaters</h2>
+                    <!-- <div class="view-options">
+                        <span class="view-label">IN THEATERS</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div> -->
+                </div>
+                
+                <!-- <div class="filter-options">
+                    <div class="filter-group">
+                        <button class="filter-btn">SORT: MOST POPULAR <i class="fas fa-chevron-down"></i></button>
+                        <button class="filter-btn">GENRE <i class="fas fa-chevron-down"></i></button>
+                        <button class="filter-btn">RATING <i class="fas fa-chevron-down"></i></button>
+                        <button class="filter-btn">POPCORNMETER <i class="fas fa-chevron-down"></i></button>
+                        <button class="filter-btn">TOMATOMETER <i class="fas fa-chevron-down"></i></button>
+                    </div>
+                    <div class="filter-badges">
+                        <span class="filter-badge certified"><i class="fas fa-check-circle"></i> CERTIFIED FRESH</span>
+                        <span class="filter-badge verified"><i class="fas fa-check-circle"></i> VERIFIED HOT</span>
+                    </div>
+                    <button class="reset-filters">Reset Filters</button>
+                </div> -->
+                
+                <div class="movies-grid" id="moviesGrid">
+                    <!-- 영화 데이터는 JavaScript에서 동적으로 추가됩니다 -->
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>영화 정보를 불러오는 중...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 갤러리 페이지 -->
+        <section id="gallery" class="page">
+            <div class="container">
+                 <!-- 트렌딩 섹션 -->
+                <section class="trending-section">
+                    <div class="trending-container">
+                        <div class="trending-items">
+                            <a href="#">국내영화</a>
+                            <a href="#">해외영화</a>
+                            <a href="#">애니메이션</a>
+                            <a href="#">미국영화</a>
+                        </div>
+                    </div>
+                </section>
+                <!--<div class="gallery-header">
+                    <h2>개념글</h2>
+                    <div class="page-info">1/3</div>
+                </div>
+                
+                <div class="gallery-content">
+                    <div id="galleryPosts" class="posts-container">
+                        갤러리 게시물 데이터는 JavaScript에서 동적으로 추가됩니다
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>게시물을 불러오는 중...</p>
+                        </div>
+                    </div>-->
+
+                    <!-- 게시판 영역 -->
+                    <section id="board-section">
+                        <h2>게시판</h2>
+                        <!-- 게시판 테이블 -->
+                        <table class="board-table">
+                            <thead>
+                                <tr>
+                                    <th width="50">번호</th>
+                                    <th>제목</th>
+                                    <th width="100">글쓴이</th>
+                                    <th width="100">작성일</th>
+                                    <th width="60">조회</th>
+                                    <th width="40">추천</th>
+                                    <th width="60">삭제</th>
+                                </tr>
+                            </thead>
+                            <tbody id="board-content">
+                                <!-- 게시글은 JavaScript로 동적으로 로드됩니다 -->
+                            </tbody>
+                        </table>
+
+                        <!-- 페이징 처리 -->
+                        <div class="pagination">
+                            <a href="#" class="active">1</a>
+                            <a href="#">2</a>
+                            <a href="#">3</a>
+                            <a href="#">4</a>
+                            <a href="#">5</a>
+                            <a href="#" class="next">다음 <i class="fas fa-angle-right"></i></a>
+                        </div>
+                    </section>
+
+                    <!-- 플로팅 버튼 -->
+                    <div class="floating-buttons">
+                        <button id="write-button" class="floating-button"><i class="fas fa-pen"></i> 글쓰기</button>
+                        <button id="top-button" class="floating-button"><i class="fas fa-arrow-up"></i></button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- 영화 상세 페이지 -->
+        <section id="movie-detail" class="page">
+            <div class="container">
+                <button id="backButton" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 목록으로 돌아가기
+                </button>
+                
+                <div id="movieDetailContent">
+                    <!-- 영화 상세 정보는 JavaScript에서 동적으로 추가됩니다 -->
+                </div>
+
+                <!-- 리뷰 섹션 -->
+                <div class="comments-section">
+                    <h3>관람평(리뷰평)작성하기</h3>
+                    
+                    <!-- 리뷰 작성 버튼 -->
+                    <button id="commentWriteButton">리뷰 작성하기</button>
+                    
+                    <!-- 리뷰 작성 폼 -->
+                    <div id="commentForm" style="display: none;">
+                        <!-- 별점 선택 -->
+                        <div class="rating-select">
+                            <span>평점:</span>
+                            <div id="starRating"></div>
+                        </div>
+                        <!-- 추천/재관람 선택 -->
+                        <div class="recommend-select">
+                            <label><input type="radio" name="recommend" value="추천함" checked> 추천함</label>
+                            <label><input type="radio" name="recommend" value="추천하지 않음"> 추천하지 않음</label>
+                            <label><input type="radio" name="recommend" value="다시 보고 싶음"> 다시 보고 싶음</label>
+                        </div>
+                        <textarea id="commentText" placeholder="리뷰 내용을 입력하세요"></textarea>
+                        <button id="submitComment">등록</button>
+                        <button id="cancelComment">취소</button>
+                        <button id="aiReviewBtn" type="button">AI 리뷰 생성</button>
+                        <!-- AI 리뷰 팝업 모달 -->
+                        <div id="aiReviewModal" class="modal">
+                            <div class="modal-content">
+                                <span class="close-modal">&times;</span>
+                                <h3>AI 영화 리뷰 생성</h3>
+                                <!-- [추가] 영화 제목 입력란 -->
+                                <div style="margin-bottom:12px;">
+                                    <label for="aiMovieTitleInput" style="font-weight:bold;">영화 제목</label>
+                                    <input type="text" id="aiMovieTitleInput" placeholder="영화 제목을 입력하세요"
+                                        style="width:100%;margin-top:4px;padding:6px 8px;border-radius:4px;border:1px solid #ccc;">
+                                    </div>
+                                <div>
+                                    <label>감정 키워드 (최대 10개 선택)</label>
+                                    <div id="emotionButtons" class="emotion-buttons"></div>
+                                </div>
+                                <div>
+                                    <label>평점 (1~10점)</label>
+                                    <div id="scoreButtons" class="score-buttons"></div>
+                                </div>
+                                <div>
+                                    <label>추천 여부</label>
+                                    <div id="recommendButtons" class="recommend-buttons"></div>
+                                </div>
+                                <button id="generateAIReview">AI 리뷰 생성</button>
+                                <div id="aiReviewResult"></div>
+                                <button id="applyAIReview" style="margin-top:16px; display:none;">리뷰 적용</button>
+                            </div>
+                            </div>
+                    </div>
+  
+
+                    <!-- 리뷰 목록 -->
+                    <div id="commentsList">
+                        <!-- 리뷰은 JavaScript에서 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 게시물 상세 페이지 -->
+        <section id="post-detail" class="page">
+            <div class="container">
+                <button id="backToGallery" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 갤러리로 돌아가기
+                </button>
+                
+                <div id="postDetailContent">
+                    <!-- 게시물 상세 내용은 JavaScript에서 동적으로 추가됩니다 -->
+                </div>
+                <div class="comments-section-container">
+                    <h3 class="comments-title">댓글</h3>
+                    <div class="comment-form">
+                        <textarea id="comment-input" placeholder="댓글을 입력하세요..."></textarea>
+                        <button id="comment-submit-btn">등록</button>
+                    </div>
+                    <div id="comments-list">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 영역 -->
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 영화 정보 및 갤러리. 모든 권리 보유.</p>
+            <p class="disclaimer">이 웹사이트는 교육 목적으로 제작되었으며, 실제 서비스와 관련이 없습니다.</p>
+        </div>
+    </footer>
+
+    <script src="movies.js"></script>
+    <script src="script.js"></script>
+    <script src="comments.js"></script>
+    <script src="board.js"></script>
+</body>
+</html>

@@ -88,7 +88,7 @@ app.post('/api/ai-review', async (req, res) => {
   
 
   const prompt = makePrompt({ title: movieTitle, emotions, recommend, score });
-  const apiKey = process.env.GOOGLE_GENAI_API_KEY || "AIzaSyAn_8PrS3qcyKSYhjRY4EjCsnWaqGrY02M"; // 반드시 본인 키로 변경
+  const apiKey = process.env.GOOGLE_GENAI_API_KEY || "key"; // 반드시 본인 키로 변경
 
   try {
     const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {

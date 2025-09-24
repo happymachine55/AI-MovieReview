@@ -4,10 +4,10 @@ require('dotenv').config();
 // db.js 또는 db.config.js
 const mysql = require('mysql2');
 const pool = mysql.createPool({
-  host: 'localhost',      // MySQL 서버 주소
-  user: 'root',           // MySQL 계정
-  password: 'process.env.DB_PASSWORD',   // MySQL 비밀번호
-  database: 'gallery_movie', // 사용할 데이터베이스명
+  host: process.env.DB_HOST,      // MySQL 서버 주소
+  user: process.env.DB_USER,           // MySQL 계정
+  password: process.env.DB_PASSWORD,   // MySQL 비밀번호
+  database: process.env.DB_NAME, // 사용할 데이터베이스명
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

@@ -872,7 +872,7 @@ function loadPostComments(postId) {
         fetch('/api/comments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ post_id: postId, user_id: '익명', content: content })
+            body: JSON.stringify({ post_id: postId, user_id: Math.floor(Math.random() * 10000), content: content })
         })
         .then(res => res.json())
         .then(() => {

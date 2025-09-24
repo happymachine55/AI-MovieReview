@@ -94,7 +94,9 @@
                     if (res.ok) {
                         alert("게시글이 등록되었습니다!");
                         // 부모 창(게시판) 새로고침 후 현재 창 닫기
-                        if (window.opener) window.opener.location.reload();
+                        if (window.opener && typeof window.opener.loadBoardData === 'function') {
+                            window.opener.loadBoardData();
+                        }
                         window.close();
                     } else {
                         alert("게시글 등록 실패: " + result.error);

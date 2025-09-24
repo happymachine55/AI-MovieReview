@@ -84,7 +84,7 @@ async function askScore() {
 }
 
 async function main() {
-  const apiKey = process.env.GOOGLE_GENAI_API_KEY || "AIzaSyAn_8PrS3qcyKSYhjRY4EjCsnWaqGrY02M";
+  const apiKey = process.env.GOOGLE_GENAI_API_KEY;
   const ai = new GoogleGenAI({ apiKey });
 
   // 단계별 입력

@@ -235,6 +235,38 @@
                 </div>
             </div>
         </section>
+        <section id="search-results" class="page">
+            <div class="container">
+                <h2>'<span id="searchTermDisplay"></span>' 검색 결과</h2>
+                <hr style="margin: 20px 0;">
+        
+                <!-- 영화 검색 결과 섹션 -->
+                <div class="search-section">
+                    <h3>영화 검색 결과</h3>
+                    <div class="movies-grid" id="searchMoviesGrid">
+                        <!-- 영화 검색 결과가 여기에 표시됩니다. -->
+                    </div>
+                </div>
+        
+                <!-- 게시글 검색 결과 섹션 -->
+                <div class="search-section" style="margin-top: 40px;">
+                    <h3>게시글 검색 결과</h3>
+                    <table class="board-table">
+                        <thead>
+                            <tr>
+                                <th width="80">번호</th>
+                                <th>제목</th>
+                                <th width="120">글쓴이</th>
+                                <th width="120">작성일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchPostsTableBody">
+                            <!-- 게시글 검색 결과가 여기에 표시됩니다. -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- 푸터 영역 -->

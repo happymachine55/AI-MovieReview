@@ -2,7 +2,7 @@ const movieData = {
     movies: [
         {
             id: 1,
-            title: "A Minecraft Movie",
+            title: "마인크래프트 무비",
             originalTitle: "마인크래프트 무비",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/04/thumb_x192/thn_53472665d45147f1bf8e83e13a58f500.jpg",
             reviewer: "4.5/10",
@@ -21,7 +21,7 @@ const movieData = {
         },
         {
             id: 2,
-            title: "Disney's Snow White",
+            title: "백설공주(실사, 2025)",
             originalTitle: "디즈니 백설공주",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/02/3a72b15160fa4db0b88b6785de82e5f3.jpg",
             reviewer: "4/10",
@@ -40,7 +40,7 @@ const movieData = {
         },
         {
             id: 3,
-            title: "Black Bag",
+            title: "블랙백",
             originalTitle: "블랙 백",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/02/86ad9cefb7cb4dbaaea4541fcefefecf.jpg",
             reviewer: "9.5/10",
@@ -59,7 +59,7 @@ const movieData = {
         },
         {
             id: 4,
-            title: "Mr. Robot",
+            title: "미스터로봇",
             originalTitle: "미스터 로봇",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/03/22cb956527eb4e29a439a22e32c0e774.jpg",
             reviewer: "7.5/10",
@@ -81,7 +81,7 @@ const movieData = {
         },
         {
             id: 5,
-            title: "A Working Man",
+            title: "워킹맨",
             originalTitle: "워킹맨",
             poster: "https://resizing.flixster.com/U3a02XV8zbgQIaC_-pRy7I3eOMI=/206x305/v2/https://resizing.flixster.com/O2tVkJKLzSO9FvArgeUcldAXWws=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2UxNjAwMTY2LTRkMjMtNGM0Zi05MTY2LTNiNmYxNTQyOTkyMi5qcGc=",
             reviewer: "5/10",
@@ -100,7 +100,7 @@ const movieData = {
         },
         {
             id: 6,
-            title: "Death of a Unicorn",
+            title: "유니콘의죽음",
             originalTitle: "유니콘의 죽음",
             poster: "https://resizing.flixster.com/0nK4RvUzFBsCOof1PGK7S7DSJlg=/206x305/v2/https://resizing.flixster.com/0hgK9M6-0k3v5wwaOYkpIjt1WmI=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzLzQxZGMzNzA5LWQ3YzQtNGY2NS05YTM2LTQzYTI2YTdjMTQ4Yi5qcGc=",
             reviewer: "5/10",
@@ -119,7 +119,7 @@ const movieData = {
         },
         {
             id: 7,
-            title: "Mission: Impossible – Final Reckoning",
+            title: "미션 임파서블: 파이널 레코닝",
             originalTitle: "미션 임파서블: 파이널 레코닝",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/05/cadaf5d0c83644558ce8115e0606afe1.jpg",
             reviewer: "8.2/10",
@@ -136,7 +136,7 @@ const movieData = {
         // 릴로 & 스티치
         {
             id: 8,
-            title: "Lilo & Stitch",
+            title: "릴로 & 스티치(실사, 2025)",
             originalTitle: "릴로 & 스티치",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/05/ea86eb7c7bc8454882636bf899464fe1.jpg",
             reviewer: "7.5/10",
@@ -153,7 +153,7 @@ const movieData = {
         // 탑건 매버릭
         {
             id: 9,
-            title: "Top Gun: Maverick",
+            title: "탑건:매버릭",
             originalTitle: "탑건: 매버릭",
             poster: "https://www.kobis.or.kr/common/mast/movie/2022/06/fa28d4efd4ed492f86cd892ed31913e1.jpg",
             reviewer: "9.0/10",
@@ -170,7 +170,7 @@ const movieData = {
         // 썬더볼츠
         {
             id: 10,
-            title: "Thunderbolts",
+            title: "썬더볼츠(2025)",
             originalTitle: "썬더볼츠",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/04/410defe99f34425ea23c54dcdaaef307.jpg",
             reviewer: "7.2/10",
@@ -187,7 +187,7 @@ const movieData = {
         // 캡틴 아메리카: 브레이브 뉴 월드
         {
             id: 11,
-            title: "Captain America: Brave New World",
+            title: "캡틴 아메리카: 브레이브 뉴 월드",
             originalTitle: "캡틴 아메리카: 브레이브 뉴 월드",
             poster: "https://www.kobis.or.kr/common/mast/movie/2025/02/fcef6ef049824f90bfa9f6858a6544ae.jpg",
             reviewer: "8.0/10",

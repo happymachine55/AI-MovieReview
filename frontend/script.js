@@ -764,14 +764,83 @@ function showPostDetail(postId) {
 }
 
 // 검색 기능
-function performSearch() {
+async function performSearch() {
+    // movieData가 로드되었는지 확인하는 안전장치
+    if (typeof movieData === 'undefined' || !movieData.movies) {
+        alert('영화 데이터가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        console.error('movieData is not defined or does not contain movies array.');
+        return;
+    }
+
     const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.trim();
+    const searchTerm = searchInput.value.trim().toLowerCase();
 
-    if (!searchTerm) return;
+    if (!searchTerm) {
+        alert('검색어를 입력해주세요.');
+        return;
+    }
 
-    alert(`"${searchTerm}" 검색 결과는 준비 중입니다.`);
-    // 실제 구현에서는 서버에 검색 요청을 보내고 결과를 표시
+    // 1. 검색 결과 페이지로 전환하고 로딩 표시
+    switchPage('search-results');
+    const moviesResultGrid = document.getElementById('searchMoviesGrid');
+    const postsResultTable = document.getElementById('searchPostsTableBody');
+    document.getElementById('searchTermDisplay').textContent = searchInput.value.trim(); // 소문자로 바꾸기 전 원본 검색어 표시
+
+    moviesResultGrid.innerHTML = '<div class="loading"><p>영화를 검색하는 중...</p></div>';
+    postsResultTable.innerHTML = '<tr><td colspan="4">게시글을 검색하는 중...</td></tr>';
+
+    // 2. 영화 검색 (안전장치가 추가된 버전)
+    const movieResults = movieData.movies.filter(movie =>
+        (movie.title && movie.title.toLowerCase().includes(searchTerm)) ||
+        (movie.originalTitle && movie.originalTitle.toLowerCase().includes(searchTerm)) || // 한글 제목 검색 추가
+        (movie.actors && movie.actors.some(actor => actor.toLowerCase().includes(searchTerm))) ||
+        (movie.directors && movie.directors.some(director => director.toLowerCase().includes(searchTerm)))
+    );
+
+    if (movieResults.length > 0) {
+        moviesResultGrid.innerHTML = movieResults.map(movie => `
+            <div class="movie-card" data-id="${movie.id}">
+                <div class="poster-container">
+                    <img src="${movie.poster}" alt="${movie.title}">
+                </div>
+                <div class="movie-info">
+                    <h3 class="movie-title">${movie.title}</h3>
+                </div>
+            </div>
+        `).join('');
+        moviesResultGrid.querySelectorAll('.movie-card').forEach(card => {
+            card.addEventListener('click', function () { showMovieDetail(this.dataset.id); });
+        });
+    } else {
+        moviesResultGrid.innerHTML = '<p>일치하는 영화가 없습니다.</p>';
+    }
+
+    // 3. 게시글 검색 (서버 API에 요청)
+    try {
+        const res = await fetch(`/api/search/posts?q=${encodeURIComponent(searchTerm)}`);
+        const postResults = await res.json();
+        if (postResults.length > 0) {
+            postsResultTable.innerHTML = postResults.map(post => `
+                <tr>
+                    <td>${post.id}</td>
+                    <td><a href="#" class="post-link" data-id="${post.id}">${post.title}</a></td>
+                    <td>${post.user_id || "익명"}</td>
+                    <td>${(post.created_at || "").slice(0, 10)}</td>
+                </tr>
+            `).join('');
+            postsResultTable.querySelectorAll('.post-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    showPostDetail(this.dataset.id);
+                });
+            });
+        } else {
+            postsResultTable.innerHTML = '<tr><td colspan="4">일치하는 게시글이 없습니다.</td></tr>';
+        }
+    } catch (error) {
+        console.error("게시글 검색 오류:", error);
+        postsResultTable.innerHTML = '<tr><td colspan="4">게시글 검색 중 오류가 발생했습니다.</td></tr>';
+    }
 }
 
 // // 날짜 포맷팅 (YYYY-MM-DD -> YYYY년 MM월 DD일)

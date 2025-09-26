@@ -191,11 +191,26 @@ app.get('/api/reviews', (req, res) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
     });
+});
+
+// --- 게시글 검색 API ---
+app.get('/api/search/posts', (req, res) => {
+  const searchTerm = `%${req.query.q}%`; // URL 쿼리에서 검색어 가져오기 (예: ?q=검색어)
+  const sql = 'SELECT * FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY id DESC';
+
+  pool.query(sql, [searchTerm, searchTerm], (err, results) => {
+    if (err) {
+      console.error("게시글 검색 DB 오류:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
   });
-  
+});
+
 app.listen(3000, () => {
   console.log('Server running on port 3000');
 });
+
 
 // DELETE /api/comments/:id  <-- 댓글 삭제 API
 app.delete('/api/comments/:id', (req, res) => {

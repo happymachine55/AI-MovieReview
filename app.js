@@ -89,17 +89,22 @@ app.post('/api/ai-review', async (req, res) => {
   
 
   const prompt = makePrompt({ title: movieTitle, emotions, recommend, score });
-  const apiKey = process.env.GOOGLE_GENAI_API_KEY; // 반드시 본인 키로 변경
+  const apiKey = process.env.GEMINI_API_KEY; // 반드시 본인 키로 변경
+  if (!apiKey) {
+    return res.status(500).json({ error: 'API 키가 .env 파일에 설정되지 않았습니다.' });
+  }
 
   try {
-    const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
+    
+    const geminiRes = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           maxOutputTokens: 1500,
-          temperature: 1.2    // ← 이 줄 추가! (1.0보다 크면 더 랜덤, 보통 1.2~1.5 추천)
+          temperature: 1.2
         }
       })
     });
@@ -114,13 +119,18 @@ app.post('/api/ai-review', async (req, res) => {
     // });
 
     const geminiData = await geminiRes.json();
-    let text = '';
-    if (geminiData.candidates && geminiData.candidates[0]?.content?.parts[0]?.text) {
-      text = geminiData.candidates[0].content.parts[0].text;
-    } else {
-      text = JSON.stringify(geminiData);
+    if (geminiData.error) {
+        console.error("Gemini API Error:", geminiData.error);
+        return res.status(500).json({ error: geminiData.error.message });
     }
+    // let text = '';
+    // if (geminiData.candidates && geminiData.candidates[0]?.content?.parts[0]?.text) {
+    //   text = geminiData.candidates[0].content.parts[0].text;
+    // } else {
+    //   text = JSON.stringify(geminiData);
+    // }
 
+     const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(geminiData);
     // 관람평 3개 추출 (1. ... 2. ... 3. ... 형식)
     const reviews = text
       .split(/\n\d+\./)

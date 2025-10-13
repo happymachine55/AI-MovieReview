@@ -7,11 +7,11 @@
 ## ⏲️ 개발 기간
 
 - 2025.03.20(목) ~ 2025.12.06(토)
-- 탄소중립의 이해, DevOps 특강
-- 아이디어 노트 작성
-- 코딩테스트
-- 아이디어 발표
-- 해커톤
+- AI 리뷰 쓰기
+- 커뮤니티 기능
+- 검색 기능
+- 이력서, 면접 연습
+- 외부 활동
 - 발표평가
 
 ## 🧑‍🤝‍🧑 개발자 소개
@@ -23,8 +23,8 @@
 
 ## 💻 개발환경
 
-- **Version** : Java 17
-- **IDE** : IntelliJ
+- **Version** : Node.js v22.14.0.
+- **IDE** : VScode
 - **Framework** : SpringBoot 2.7.11
 - **ORM** : JPA
 
@@ -32,8 +32,6 @@
 
 - **Server** : AWS EC2
 - **DataBase** : MySQL
-- **WS/WAS** : Nginx, Tomcat
-- **OCR** : AWS Textract, AWS S3
 - **아이디어 회의** : 대면
 
 ## 📝 프로젝트 아키텍쳐

@@ -8,11 +8,66 @@ const pool = require('./db.js');
 const app = express();
 app.use(express.json());
 
+// ✅ 세션 관리 추가
+const session = require('express-session');
+app.use(session({
+    secret: 'your-secret-key-change-this',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24시간
+}));
+
 // 정적 파일 제공 (frontend 폴더를 public으로 사용)
 app.use(express.static(path.join(__dirname, 'frontend')));
 
+// ✅✅✅ 여기에 로그인/로그아웃 API 추가 (기존 API 엔드포인트 이전) ✅✅✅
+// 로그인 API
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    pool.query('SELECT * FROM users WHERE username = ? AND password = ?', 
+        [username, password], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            if (results.length === 0) {
+                return res.status(401).json({ error: '아이디 또는 비밀번호가 잘못되었습니다.' });
+            }
+            
+            const user = results[0];
+            req.session.userId = user.id;
+            req.session.username = user.username;
+            
+            res.json({ success: true, user: { id: user.id, username: user.username } });
+        }
+    );
+});
+
+// 로그아웃 API
+app.post('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
+// 현재 로그인 상태 확인 API
+app.get('/api/me', (req, res) => {
+    if (req.session.userId) {
+        res.json({ 
+            loggedIn: true, 
+            user: { 
+                id: req.session.userId, 
+                username: req.session.username 
+            } 
+        });
+    } else {
+        res.json({ loggedIn: false });
+    }
+});
+
 app.get('/api/posts', (req, res) => {
-  pool.query('SELECT * FROM posts', (err, results) => {
+  pool.query('SELECT * FROM posts ORDER BY id DESC', (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
@@ -28,15 +83,35 @@ app.get('/api/posts/:id', (req, res) => {
 });
 //posts 게시판 삭제
 app.delete('/api/posts/:id', (req, res) => {
+    // ✅ 로그인 체크 추가
+    if (!req.session.userId) {
+        return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
     const postId = req.params.id;
-    pool.query('DELETE FROM posts WHERE id = ?', [postId], (err, result) => {
+    // ✅ 먼저 작성자 확인
+    pool.query('SELECT user_id FROM posts WHERE id = ?', [postId], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
+        if (results.length === 0) return res.status(404).json({ error: 'Not found' });
+        
+        // ✅ 본인이 작성한 글인지 확인
+        if (results[0].user_id !== req.session.userId) {
+            return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+        }
+        
+        // ✅ 본인 글이면 삭제
+        pool.query('DELETE FROM posts WHERE id = ?', [postId], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
     });
 });
 // 리뷰 저장 API
 app.post('/api/reviews', (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
     const { movie_title, user_id, rating, content, recommend } = req.body;
+    const userId = req.session.userId; // ✅ 세션에서만 가져옴
     const sql = 'INSERT INTO reviews (movie_title, user_id, rating, content, recommend, created_at) VALUES (?, ?, ?, ?, ?, NOW())';
     pool.query(sql, [movie_title, user_id, rating, content, recommend], (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -46,11 +121,27 @@ app.post('/api/reviews', (req, res) => {
   
 // 리뷰 삭제 API (app.js)
 app.delete('/api/reviews/:id', (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
+    
   const reviewId = req.params.id;
-  pool.query('DELETE FROM reviews WHERE id = ?', [reviewId], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
-  });
+    // ✅ 먼저 작성자 확인
+    pool.query('SELECT user_id FROM reviews WHERE id = ?', [reviewId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ error: 'Not found' });
+        
+        // ✅ 본인이 작성한 리뷰인지 확인
+        if (results[0].user_id !== req.session.userId) {
+            return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+        }
+        
+        // ✅ 본인 리뷰면 삭제
+        pool.query('DELETE FROM reviews WHERE id = ?', [reviewId], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
+    });
 });
 
 app.post('/api/ai-review', async (req, res) => {
@@ -147,7 +238,12 @@ app.post('/api/ai-review', async (req, res) => {
 
 // app.js
 app.post('/api/posts', (req, res) => {
+    // ✅ 로그인 체크 추가
+    if (!req.session.userId) {
+        return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
   const { user_id, title, content } = req.body;
+  const userId = req.session.userId;
   const sql = 'INSERT INTO posts (user_id, title, content, created_at) VALUES (?, ?, ?, NOW())';
   pool.query(sql, [user_id, title, content], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -157,7 +253,11 @@ app.post('/api/posts', (req, res) => {
 
 // POST /api/comments
 app.post('/api/comments', (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: '로그인이 필요합니다.' });
+  }
   const { post_id, user_id, content } = req.body;
+  const userId = req.session.userId; // ✅ 세션에서만 가져옴
   
   // ✅ [수정] created_at 컬럼에 NOW() 함수를 이용해 현재 시간을 명시적으로 추가합니다.
   const sql = 'INSERT INTO comments (post_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())';
@@ -214,9 +314,24 @@ app.listen(3000, () => {
 
 // DELETE /api/comments/:id  <-- 댓글 삭제 API
 app.delete('/api/comments/:id', (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
   const commentId = req.params.id;
-  pool.query('DELETE FROM comments WHERE id = ?', [commentId], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
-  });
+    // ✅ 먼저 작성자 확인
+  pool.query('SELECT user_id FROM comments WHERE id = ?', [commentId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ error: 'Not found' });
+        
+      // ✅ 본인이 작성한 댓글인지 확인
+       if (results[0].user_id !== req.session.userId) {
+          return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+      }
+        
+      // ✅ 본인 댓글이면 삭제
+      pool.query('DELETE FROM comments WHERE id = ?', [commentId], (err, result) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ success: true });
+      });
+   });
 });

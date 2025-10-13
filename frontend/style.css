@@ -1227,3 +1227,109 @@ button {
     min-height: 150px;
     /* 내용이 적어도 최소 높이 유지 */
 }
+
+/* ========================================================= */
+/* 👇👇👇 글쓰기 페이지 (write.html) 전용 스타일 (추가) 👇👇👇 */
+/* ========================================================= */
+.write-container {
+    max-width: 900px;
+    /* 에디터 전체 가로 크기 고정 */
+    margin: 40px auto;
+    /* 페이지 중앙 정렬 및 위아래 여백 */
+    padding: 30px;
+    background-color: #ffffff;
+    border: 1px solid #d9d9d9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+}
+
+.write-container h2 {
+    font-size: 1.8rem;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #333;
+}
+
+.write-container .form-group {
+    margin-bottom: 15px;
+}
+
+/* 제목 입력칸 */
+.write-container #title {
+    width: 100%;
+    height: 45px;
+    /* 높이 고정 */
+    padding: 0 15px;
+    font-size: 1.1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.2s;
+}
+
+.write-container #title:focus {
+    outline: none;
+    border-color: #2e3191;
+}
+
+/* 내용 입력칸 */
+.write-container #content {
+    width: 100%;
+    height: 400px;
+    /* 높이 고정 (요청사항 반영) */
+    padding: 15px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    /* 사용자가 크기 조절 못하게 막기 */
+    line-height: 1.7;
+    transition: border-color 0.2s;
+}
+
+.write-container #content:focus {
+    outline: none;
+    border-color: #2e3191;
+}
+
+/* 툴바 */
+.write-container .toolbar {
+    margin-top: -15px;
+    /* 내용 칸과 딱 붙이도록 */
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    margin-bottom: 20px;
+}
+
+.write-container .toolbar button {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* 등록/취소 버튼 */
+.write-container .action-buttons {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.write-container .action-buttons button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.write-container #cancel-btn {
+    background-color: #6c757d;
+}
+    /* 회

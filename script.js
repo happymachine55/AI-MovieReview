@@ -23,26 +23,32 @@ document.addEventListener('DOMContentLoaded', function () {
     // 영화 데이터 로드
     loadMovies();
 
-    loadGalleryPosts(); // 기존 갤러리 게시물 로드
+    //loadGalleryPosts(); // 기존 갤러리 게시물 로드
 
     loadBoardData(); // 새로 작성한 게시판 데이터 로드
 });
 
 // 앱 초기화
 function initializeApp() {
-    // 현재 활성화된 페이지
     window.currentPage = 'movies';
-
-    // URL 파라미터 분석
+    
     const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page');
     const movieId = urlParams.get('movieId');
     const postId = urlParams.get('postId');
 
-    // 파라미터에 따라 적절한 페이지 표시
     if (movieId) {
+        // URL에서 직접 접근 시 히스토리 상태 설정
+        window.history.replaceState({ page: 'movie-detail', movieId }, '', `/?movieId=${movieId}`);
         showMovieDetail(movieId);
     } else if (postId) {
+        window.history.replaceState({ page: 'post-detail', postId }, '', `/?postId=${postId}`);
         showPostDetail(postId);
+    } else if (page) {
+        window.history.replaceState({ page }, '', `/?page=${page}`);
+        switchPage(page);
+    } else {
+        window.history.replaceState({ page: 'movies' }, '', '/');
     }
 }
 
@@ -67,6 +73,73 @@ function setupEventListeners() {
         });
     });
 
+    // 새 게시글 작성 완료 메시지 수신
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'POST_CREATED') {
+            // 갤러리 페이지가 활성화되어 있으면 데이터 새로고침
+            if (window.currentPage === 'gallery') {
+                loadBoardData();
+            }
+        }
+    });
+
+    // 새 게시글 작성 완료 시 자동 새로고침
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'POST_CREATED') {
+            // 갤러리 페이지가 활성화되어 있으면 데이터 새로고침
+            if (window.currentPage === 'gallery') {
+                loadBoardData();
+            }
+        }
+    });
+
+    // ✅ 여기에 추가: 브라우저 뒤로가기/앞으로가기 처리
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.page) {
+            const pageId = event.state.page;
+            
+            // 페이지 전환 (히스토리 추가 없이)
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            window.currentPage = pageId;
+            
+            // 네비게이션 메뉴 활성화 상태 업데이트
+            const navLinks = document.querySelectorAll('.main-nav a');
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-page') === pageId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // 영화 상세 페이지인 경우
+            if (pageId === 'movie-detail' && event.state.movieId) {
+                showMovieDetail(event.state.movieId);
+            } 
+            // 게시글 상세 페이지인 경우
+            else if (pageId === 'post-detail' && event.state.postId) {
+                showPostDetail(event.state.postId);
+            }
+            // ✅ 갤러리 페이지로 돌아온 경우 게시판 데이터 다시 로드
+            else if (pageId === 'gallery') {
+                loadBoardData();
+            }
+        } else {
+        // state가 없으면 메인 페이지로
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        document.getElementById('movies').classList.add('active');
+        window.currentPage = 'movies';
+        
+        }
+    });
 
     document.getElementById('write-button').addEventListener('click', () => {
         const writeUrl = './write.html'; // 작성 페이지의 상대 경로 설정
@@ -287,26 +360,27 @@ document.getElementById('commentWriteButton').addEventListener('click', () => {
 });
 
 
-// 페이지 전환
+// 페이지 전환 함수
 function switchPage(pageId) {
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
+    // 모든 페이지 숨기기
+    document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
 
-    document.getElementById(pageId).classList.add('active');
-
-    // 페이지 전환 시 데이터 로드
-    if (pageId === 'movies') {
-        loadMovies();
-    } else if (pageId === 'gallery') {
-        loadBoardData();  // 게시판 데이터 로드 함수 호출
-        loadGalleryPosts(); // 이 부분은 실제 쓰이는 용도에 따라 필요시 유지하거나 제거
+    // 선택한 페이지 표시
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
     }
 
-    // 페이지 상단으로 스크롤
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // ✅ URL 변경 (브라우저 히스토리에 추가)
+    const url = pageId === 'movies' ? '/' : `/?page=${pageId}`;
+    window.history.pushState({ page: pageId }, '', url);
+
+    // 현재 페이지 상태 업데이트
+    window.currentPage = pageId;
 }
+
 
 // 영화 데이터 로드
 function loadMovies() {
@@ -550,8 +624,15 @@ function showMovieDetail(movieId) {
     const movieDetailContent = document.getElementById('movieDetailContent');
     movieDetailContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>영화 상세정보를 불러오는 중...</p></div>';
 
-    // 상세 페이지로 전환
-    switchPage('movie-detail');
+    // ✅ 수정: 페이지만 전환하고 히스토리는 직접 관리
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    document.getElementById('movie-detail').classList.add('active');
+    window.currentPage = 'movie-detail';
+
+    // ✅ URL에 영화 ID 추가
+    window.history.pushState({ page: 'movie-detail', movieId }, '', `/?movieId=${movieId}`);
 
     // 영화 데이터 조회
     const movie = movieData.movies.find(m => m.id == movieId);
@@ -733,7 +814,15 @@ function submitReview(movieTitle, userId, rating, content, recommend) {
 function showPostDetail(postId) {
     const postDetailContent = document.getElementById('postDetailContent');
     postDetailContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>게시물을 불러오는 중...</p></div>';
-    switchPage('post-detail');
+    // ✅ 수정: 페이지만 전환
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    document.getElementById('post-detail').classList.add('active');
+    window.currentPage = 'post-detail';
+    
+    // ✅ 히스토리는 여기서 한 번만 추가
+    window.history.pushState({ page: 'post-detail', postId }, '', `/?postId=${postId}`);
 
     fetch(`/api/posts/${postId}`)
         .then(res => {
@@ -754,6 +843,9 @@ function showPostDetail(postId) {
                 </div>
             `;
             postDetailContent.innerHTML = html;
+
+            // ✅ URL에 게시글 ID 추가
+            //window.history.pushState({ page: 'post-detail', postId }, '', `/?postId=${postId}`);
 
             // ✅ 게시글을 성공적으로 불러온 후, 댓글 기능을 활성화합니다.
             loadPostComments(postId);

@@ -15,9 +15,19 @@
                 <h1>영화 정보 및 갤러리</h1>
                 <span class="subtitle">www.movieCommunity.com</span>
             </div>
-            <div class="search-area">
-                <input type="text" id="searchInput" placeholder="영화/배우/갤러리 검색...">
-                <button id="searchBtn"><i class="fas fa-search"></i></button>
+            <div class="header-right">
+                <!-- 로그인/로그아웃 버튼 (검색창 위에 배치) -->
+                <div id="user-status" class="user-status">
+                    <span id="username-display"></span>
+                    <button id="login-btn" class="auth-btn" onclick="login()">로그인</button>
+                    <button id="register-btn" class="auth-btn" onclick="register()">회원가입</button>
+                    <button id="logout-btn" class="auth-btn" style="display:none;" onclick="logout()">로그아웃</button>
+                </div>
+                <!-- 검색창 -->
+                <div class="search-area">
+                    <input type="text" id="searchInput" placeholder="영화/배우/갤러리 검색...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
             </div>
         </div>
         <nav class="main-nav">
@@ -119,6 +129,27 @@
                 <div class="floating-buttons">
                     <button id="write-button" class="floating-button"><i class="fas fa-pen"></i> 글쓰기</button>
                     <button id="top-button" class="floating-button"><i class="fas fa-arrow-up"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 게시글 작성 페이지 -->
+        <section id="write-post" class="page">
+            <div class="container">
+                <h2>글쓰기</h2>
+                <div class="write-container">
+                    <div class="form-group">
+                        <label for="write-title" style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">제목</label>
+                        <input type="text" id="write-title" placeholder="제목을 입력해주세요.">
+                    </div>
+                    <div class="form-group">
+                        <label for="write-content" style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">내용</label>
+                        <textarea id="write-content" placeholder="내용을 입력해주세요."></textarea>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="write-cancel-btn">취소</button>
+                        <button id="write-submit-btn">등록</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -265,7 +296,5 @@
 
     <script src="movies.js"></script>
     <script src="script.js"></script>
-    <script src="comments.js"></script>
-    <script src="board.js"></script>
 </body>
 </html>

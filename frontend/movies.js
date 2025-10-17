@@ -206,66 +206,66 @@ const movieData = {
 };
 
 // // 영화 데이터 로드
-// function loadMovies() {
-//     const moviesGrid = document.getElementById('moviesGrid');
-//     moviesGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>영화 정보를 불러오는 중...</p></div>';
+function loadMovies() {
+    const moviesGrid = document.getElementById('moviesGrid');
+    moviesGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>영화 정보를 불러오는 중...</p></div>';
     
-//     // 비동기 작업 시뮬레이션 (실제로는 서버 API 호출)
-//     setTimeout(() => {
-//         let html = '';
+    // 비동기 작업 시뮬레이션 (실제로는 서버 API 호출)
+    setTimeout(() => {
+        let html = '';
         
-//         movieData.movies.forEach(movie => {
-//             const tomatoClass = parseInt(movie.reviewer) > 75 ? 'gold' : '';
+        movieData.movies.forEach(movie => {
+            const tomatoClass = parseInt(movie.reviewer) > 75 ? 'gold' : '';
             
-//             html += `
-//                 <div class="movie-card" data-id="${movie.id}">
-//                     <div class="poster-container">
-//                         <img src="${movie.poster}" alt="${movie.title}">
-//                         <div class="play-button">
-//                             <i class="fas fa-play"></i>
-//                         </div>
-//                     </div>
-//                     <div class="movie-info">
-//                         <div class="ratings">
-//                             <span class="reviewer ${tomatoClass}">${movie.reviewer}</span>
-//                             <span class="audience">${movie.audience}</span>
-//                         </div>
-//                         <h3 class="movie-title">${movie.title}</h3>
-//                         <p class="movie-date">개봉일: ${formatDate(movie.releaseDate)}</p>
-//                         <button class="watchlist-btn">WATCHLIST</button>
-//                     </div>
-//                 </div>
-//             `;
-//         });
+            html += `
+                <div class="movie-card" data-id="${movie.id}">
+                    <div class="poster-container">
+                        <img src="${movie.poster}" alt="${movie.title}">
+                        <div class="play-button">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <div class="ratings">
+                            <span class="reviewer ${tomatoClass}">${movie.reviewer}</span>
+                            <span class="audience">${movie.audience}</span>
+                        </div>
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <p class="movie-date">개봉일: ${formatDate(movie.releaseDate)}</p>
+                        <button class="watchlist-btn">WATCHLIST</button>
+                    </div>
+                </div>
+            `;
+        });
         
-//         moviesGrid.innerHTML = html;
+        moviesGrid.innerHTML = html;
         
-//         // 영화 카드 클릭 이벤트
-//         const movieCards = document.querySelectorAll('.movie-card');
-//         movieCards.forEach(card => {
-//             card.addEventListener('click', function() {
-//                 const movieId = this.getAttribute('data-id');
-//                 showMovieDetail(movieId);
-//             });
-//         });
+        // 영화 카드 클릭 이벤트
+        const movieCards = document.querySelectorAll('.movie-card');
+        movieCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const movieId = this.getAttribute('data-id');
+                showMovieDetail(movieId);
+            });
+        });
         
-//          // [여기에 추가] 플레이버튼 클릭 이벤트
-//         document.querySelectorAll('.play-button').forEach(btn => {
-//             btn.addEventListener('click', function(e) {
-//                 e.stopPropagation(); // 카드 클릭 방지
-//                 const card = btn.closest('.movie-card');
-//                 const movieId = card.getAttribute('data-id');
-//                 const movie = movieData.movies.find(m => m.id == movieId);
-//                 if (movie && movie.trailerYoutubeId) {
-//                     openTrailerModal(movie.trailerYoutubeId);
-//                 } else {
-//                     alert('예고편 정보가 없습니다.');
-//                 }
-//             });
-//         });
+         // [여기에 추가] 플레이버튼 클릭 이벤트
+        document.querySelectorAll('.play-button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // 카드 클릭 방지
+                const card = btn.closest('.movie-card');
+                const movieId = card.getAttribute('data-id');
+                const movie = movieData.movies.find(m => m.id == movieId);
+                if (movie && movie.trailerYoutubeId) {
+                    openTrailerModal(movie.trailerYoutubeId);
+                } else {
+                    alert('예고편 정보가 없습니다.');
+                }
+            });
+        });
         
-//     }, 1000); // 1초 지연 (로딩 시뮬레이션)
-// }
+    }, 1000); // 1초 지연 (로딩 시뮬레이션)
+}
 
 function openTrailerModal(youtubeId) {
     // 모달 생성 및 유튜브 iframe 삽입

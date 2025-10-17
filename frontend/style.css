@@ -63,12 +63,57 @@ button {
     opacity: 0.8;
 }
 
+/* 헤더 오른쪽 영역 (로그인 버튼 + 검색창) */
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+/* 사용자 상태 (로그인/로그아웃 버튼) */
+.user-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+#username-display {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 로그인/로그아웃 버튼 (하얀색 버튼) */
+.auth-btn {
+    background-color: white;
+    color: #2e3191;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.auth-btn:active {
+    transform: translateY(0);
+}
+
 .search-area {
     display: flex;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     overflow: hidden;
-    width: 40%;
+    width: 350px;
 }
 
 .search-area input {
@@ -338,8 +383,11 @@ button {
     line-height: 1.4;
     height: 2.8em;
     overflow: hidden;
+    text-overflow: ellipsis;
+    /* 표준 CSS를 사용한 2줄 말줄임 */
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 2; /* 구형 브라우저 호환성 */
+    line-clamp: 2; /* 표준 CSS 속성 */
     -webkit-box-orient: vertical;
 }
 
@@ -857,6 +905,11 @@ button {
         gap: 15px;
     }
     
+    .header-right {
+        width: 100%;
+        align-items: center;
+    }
+    
     .search-area {
         width: 100%;
     }
@@ -1065,6 +1118,50 @@ button {
     background: #2e3191;
     color: #fff;
 }
+
+/* AI 리뷰생성 버튼 스타일 */
+#aiReviewBtn {
+    background: linear-gradient(90deg, #2e3191 80%, #18308a 100%);
+    color: white;
+    padding: 12px 32px;
+    font-size: 17px;
+    border: none;
+    border-radius: 25px;
+    box-shadow: 0 2px 5px rgba(46, 49, 145, 0.06);
+    transition: background 0.2s, transform 0.18s;
+    font-weight: 700;
+}
+
+#aiReviewBtn:hover {
+    background: linear-gradient(90deg, #4b50b5 80%, #2e3191 100%);
+    transform: scale(1.03);
+}
+
+#aiReviewBtn:active {
+    background-color: #1c1f6e;
+}
+
+
+#generateAIReview {
+    background: linear-gradient(90deg, #2e3191 80%, #18308a 100%);
+    color: white;
+    padding: 12px 32px;
+    font-size: 17px;
+    border: none;
+    border-radius: 25px;
+    box-shadow: 0 2px 5px rgba(46, 49, 145, 0.06);
+    transition: background 0.2s, transform 0.18s;
+    font-weight: 700;
+}
+
+#generateAIReview:hover {
+    background: linear-gradient(90deg, #4b50b5 80%, #2e3191 100%);
+    transform: scale(1.03);
+}
+
+#generateAIReview:active {
+    background-color: #1c1f6e;
+}
 /*AI 리뷰 생성 */
 /*AI 리뷰 결과물물 */
 .review-box {
@@ -1231,16 +1328,22 @@ button {
 /* ========================================================= */
 /* 👇👇👇 글쓰기 페이지 (write.html) 전용 스타일 (추가) 👇👇👇 */
 /* ========================================================= */
+#write-post {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
 .write-container {
-    max-width: 900px;
-    /* 에디터 전체 가로 크기 고정 */
-    margin: 40px auto;
+    max-width: 1000px;
+    /* ✅ 에디터 전체 가로 크기 고정 */
+    margin: 20px auto;
     /* 페이지 중앙 정렬 및 위아래 여백 */
-    padding: 30px;
+    padding: 40px;
     background-color: #ffffff;
     border: 1px solid #d9d9d9;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
 }
 
 .write-container h2 {
@@ -1251,44 +1354,61 @@ button {
 }
 
 .write-container .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-/* 제목 입력칸 */
-.write-container #title {
+.write-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+/* 제목 입력칸 - DCInside 스타일 */
+.write-container #write-title {
     width: 100%;
-    height: 45px;
-    /* 높이 고정 */
+    height: 50px;
+    /* ✅ 높이 고정 */
     padding: 0 15px;
-    font-size: 1.1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    transition: border-color 0.2s;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    background-color: #fafafa;
 }
 
-.write-container #title:focus {
+.write-container #write-title:focus {
     outline: none;
-    border-color: #2e3191;
+    border-color: #3b5998;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.1);
 }
 
-/* 내용 입력칸 */
-.write-container #content {
+/* 내용 입력칸 - DCInside 스타일 */
+.write-container #write-content {
     width: 100%;
-    height: 400px;
-    /* 높이 고정 (요청사항 반영) */
+    height: 500px;
+    /* ✅ 높이 고정 (요청사항 반영) */
     padding: 15px;
     font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
     resize: none;
-    /* 사용자가 크기 조절 못하게 막기 */
+    /* ✅ 사용자가 크기 조절 못하게 막기 */
     line-height: 1.7;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    box-sizing: border-box;
+    background-color: #fafafa;
 }
 
-.write-container #content:focus {
+.write-container #write-content:focus {
     outline: none;
-    border-color: #2e3191;
+    border-color: #3b5998;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.1);
 }
 
 /* 툴바 */
@@ -1312,24 +1432,42 @@ button {
     font-size: 0.9rem;
 }
 
-/* 등록/취소 버튼 */
+/* 등록/취소 버튼 - DCInside 스타일 */
 .write-container .action-buttons {
     text-align: right;
     margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
 }
 
 .write-container .action-buttons button {
-    padding: 10px 25px;
+    padding: 12px 30px;
     border: none;
-    border-radius: 5px;
+    border-radius: 3px;
     font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
-    margin-left: 10px;
-    transition: background-color 0.2s;
+    margin-left: 8px;
+    transition: all 0.2s;
 }
 
-.write-container #cancel-btn {
-    background-color: #6c757d;
+/* 취소 버튼 */
+.write-container #write-cancel-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
 }
-    /* 회
+
+.write-container #write-cancel-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* 등록 버튼 */
+.write-container #write-submit-btn {
+    background-color: #3b5998;
+    color: white;
+}
+
+.write-container #write-submit-btn:hover {
+    background-color: #2d4373;
+}

@@ -1,133 +1,156 @@
-/* 기본 설정 */
+/* ========================================================= */
+/* 📦 전역 기본 설정 */
+/* ========================================================= */
+
+/* 모든 요소의 기본 여백 제거 및 박스 모델 설정 */
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    box-sizing: border-box; /* padding과 border를 width에 포함 */
     font-family: 'Noto Sans KR', sans-serif;
 }
 
+/* 전체 페이지 배경색 및 기본 텍스트 스타일 */
 body {
-    background-color: #f5f5f5;
-    color: #333;
-    line-height: 1.6;
+    background-color: #f5f5f5; /* 연한 회색 배경 */
+    color: #333; /* 기본 텍스트 색상 */
+    line-height: 1.6; /* 줄 간격 */
 }
 
+/* 콘텐츠를 감싸는 컨테이너 (가운데 정렬 및 최대 너비 제한) */
 .container {
     width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1200px; /* 최대 너비 제한 */
+    margin: 0 auto; /* 좌우 가운데 정렬 */
     padding: 20px 0;
 }
 
+/* 링크 기본 스타일 (밑줄 제거) */
 a {
     text-decoration: none;
-    color: inherit;
+    color: inherit; /* 부모 요소의 색상 상속 */
 }
 
+/* 모든 버튼에 마우스 커서를 포인터로 설정 */
 button {
     cursor: pointer;
 }
 
-/* 헤더 스타일 */
+/* ========================================================= */
+/* 🎯 헤더 영역 스타일 */
+/* ========================================================= */
+
+/* 상단 고정 헤더 (스크롤해도 상단에 고정됨) */
 .main-header {
-    background-color: #2e3191;
+    background-color: #2e3191; /* 남색 배경 */
     color: white;
     padding: 15px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: sticky;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+    position: sticky; /* 스크롤 시 상단 고정 */
     top: 0;
-    z-index: 100;
+    z-index: 100; /* 다른 요소 위에 표시 */
 }
 
+/* 헤더 내부 컨테이너 (로고와 검색창 배치) */
 .header-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-between; /* 양쪽 끝 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
 }
 
+/* 로고 영역 (제목과 부제목을 세로로 배치) */
 .logo {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* 세로 방향 배치 */
 }
 
+/* 로고 제목 스타일 */
 .logo h1 {
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: 700; /* 굵은 글씨 */
 }
 
+/* 로고 부제목 스타일 */
 .subtitle {
     font-size: 0.8rem;
-    opacity: 0.8;
+    opacity: 0.8; /* 약간 투명하게 */
 }
 
-/* 헤더 오른쪽 영역 (로그인 버튼 + 검색창) */
+/* 헤더 오른쪽 영역 (로그인 버튼 + 검색창을 세로로 배치) */
 .header-right {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
+    flex-direction: column; /* 세로 방향 배치 */
+    align-items: flex-end; /* 오른쪽 정렬 */
+    gap: 10px; /* 요소 간 간격 */
 }
 
-/* 사용자 상태 (로그인/로그아웃 버튼) */
+/* 사용자 상태 영역 (로그인/로그아웃 버튼 포함) */
 .user-status {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 10px; /* 버튼 간 간격 */
     color: white;
 }
 
+/* 사용자 이름 표시 */
 #username-display {
     font-size: 14px;
     font-weight: 500;
 }
 
-/* 로그인/로그아웃 버튼 (하얀색 버튼) */
+/* 로그인/회원가입/로그아웃 버튼 스타일 */
 .auth-btn {
-    background-color: white;
-    color: #2e3191;
+    background-color: white; /* 하얀색 배경 */
+    color: #2e3191; /* 남색 텍스트 */
     border: none;
     padding: 8px 20px;
-    border-radius: 20px;
+    border-radius: 20px; /* 둥근 모서리 */
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s; /* 부드러운 전환 효과 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
 }
 
+/* 로그인 버튼 마우스 오버 효과 */
 .auth-btn:hover {
-    background-color: #f0f0f0;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    background-color: #f0f0f0; /* 살짝 어두운 배경 */
+    transform: translateY(-1px); /* 살짝 위로 이동 */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
 }
 
+/* 로그인 버튼 클릭 효과 */
 .auth-btn:active {
-    transform: translateY(0);
+    transform: translateY(0); /* 원래 위치로 */
 }
 
+/* 검색 영역 (검색창 + 버튼) */
 .search-area {
     display: flex;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.2); /* 반투명 배경 */
+    border-radius: 20px; /* 둥근 모서리 */
+    overflow: hidden; /* 자식 요소가 모서리 밖으로 나가지 않도록 */
     width: 350px;
 }
 
+/* 검색 입력창 */
 .search-area input {
     border: none;
-    background: transparent;
+    background: transparent; /* 투명 배경 */
     padding: 8px 15px;
     color: white;
     width: 100%;
 }
 
+/* 검색창 플레이스홀더 색상 */
 .search-area input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.7); /* 반투명 흰색 */
 }
 
+/* 검색 버튼 */
 .search-area button {
     background: transparent;
     border: none;
@@ -136,38 +159,47 @@ button {
     cursor: pointer;
 }
 
+/* 네비게이션 메뉴 (영화/갤러리 탭) */
 .main-nav ul {
     display: flex;
-    justify-content: center;
-    list-style: none;
+    justify-content: center; /* 가운데 정렬 */
+    list-style: none; /* 리스트 점 제거 */
     margin-top: 15px;
     padding: 0 5%;
 }
 
+/* 네비게이션 링크 스타일 */
 .main-nav a {
     color: white;
     text-decoration: none;
     padding: 5px 15px;
     margin: 0 5px;
     border-radius: 4px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s; /* 부드러운 배경색 전환 */
 }
 
+/* 현재 활성화된 탭 표시 */
 .main-nav a.active {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.2); /* 반투명 배경 */
 }
 
+/* 네비게이션 링크 마우스 오버 효과 */
 .main-nav a:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 트렌딩 섹션 */
+/* ========================================================= */
+/* 🔥 트렌딩 섹션 (헤더 하단의 트렌드 영역) */
+/* ========================================================= */
+
+/* 트렌딩 섹션 배경 */
 .trending-section {
-    background-color: #333;
+    background-color: #333; /* 어두운 배경 */
     color: white;
     padding: 10px 0;
 }
 
+/* 트렌딩 내부 컨테이너 */
 .trending-container {
     display: flex;
     align-items: center;
@@ -176,61 +208,74 @@ button {
     margin: 0 auto;
 }
 
+/* 트렌딩 레이블 ("TRENDING" 텍스트) */
 .trending-label {
-    color: #f5c518;
+    color: #f5c518; /* 노란색 강조 */
     font-weight: bold;
     margin-right: 20px;
-    white-space: nowrap;
+    white-space: nowrap; /* 줄바꿈 방지 */
 }
 
+/* 트렌딩 항목 리스트 (가로 스크롤 가능) */
 .trending-items {
     display: flex;
-    overflow-x: auto;
-    white-space: nowrap;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    overflow-x: auto; /* 가로 스크롤 활성화 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+    -ms-overflow-style: none; /* IE/Edge 스크롤바 숨김 */
+    scrollbar-width: none; /* Firefox 스크롤바 숨김 */
 }
 
+/* 트렌딩 항목 스크롤바 숨김 (Chrome, Safari) */
 .trending-items::-webkit-scrollbar {
     display: none;
 }
 
+/* 트렌딩 항목 링크 */
 .trending-items a {
     color: white;
     margin-right: 20px;
-    position: relative;
+    position: relative; /* 구분점 위치 설정을 위해 */
 }
 
+/* 트렌딩 항목 사이 구분점 (•) */
 .trending-items a:not(:last-child)::after {
-    content: "•";
+    content: "•"; /* 점 추가 */
     position: absolute;
     right: -12px;
-    color: #666;
+    color: #666; /* 회색 점 */
 }
 
-/* 페이지 스타일 */
+/* ========================================================= */
+/* 📄 페이지 전환 스타일 (SPA 구조) */
+/* ========================================================= */
+
+/* 모든 페이지 기본 상태 (숨김) */
 .page {
-    display: none;
-    min-height: calc(100vh - 300px);
+    display: none; /* 기본적으로 숨김 */
+    min-height: calc(100vh - 300px); /* 최소 높이 설정 */
 }
 
+/* 활성화된 페이지만 표시 */
 .page.active {
     display: block;
-    animation: fadeIn 0.5s;
+    animation: fadeIn 0.5s; /* 페이드인 애니메이션 */
 }
 
+/* 페이드인 애니메이션 정의 */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; } /* 투명에서 시작 */
+    to { opacity: 1; } /* 불투명으로 전환 */
 }
 
+/* 섹션 헤더 (제목과 옵션 버튼) */
 .section-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* 양쪽 끝 정렬 */
     align-items: center;
     margin-bottom: 20px;
 }
 
+/* 뷰 옵션 버튼 (필터 등) */
 .view-options {
     display: flex;
     align-items: center;
@@ -241,34 +286,42 @@ button {
     cursor: pointer;
 }
 
-/* 필터 옵션 */
+/* ========================================================= */
+/* 🔧 필터 옵션 영역 */
+/* ========================================================= */
+
+/* 필터 옵션 컨테이너 */
 .filter-options {
     margin-bottom: 20px;
 }
 
+/* 필터 버튼 그룹 (정렬, 장르 등) */
 .filter-group {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* 줄바꿈 허용 */
     gap: 10px;
     margin-bottom: 10px;
 }
 
+/* 개별 필터 버튼 */
 .filter-btn {
     background-color: #f0f0f0;
     border: none;
     padding: 8px 15px;
-    border-radius: 20px;
+    border-radius: 20px; /* 둥근 모서리 */
     font-size: 14px;
     transition: background-color 0.3s;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 5px; /* 아이콘과 텍스트 간격 */
 }
 
+/* 필터 버튼 마우스 오버 효과 */
 .filter-btn:hover {
     background-color: #e0e0e0;
 }
 
+/* 필터 뱃지 그룹 (인증 마크 등) */
 .filter-badges {
     display: flex;
     flex-wrap: wrap;
@@ -276,6 +329,7 @@ button {
     margin-bottom: 10px;
 }
 
+/* 개별 필터 뱃지 */
 .filter-badge {
     background-color: #f0f0f0;
     padding: 8px 15px;
@@ -286,117 +340,137 @@ button {
     gap: 5px;
 }
 
+/* 인증된 신선함 뱃지 아이콘 색상 */
 .filter-badge.certified i {
-    color: #6cc04a;
+    color: #6cc04a; /* 초록색 */
 }
 
+/* 검증된 핫 뱃지 아이콘 색상 */
 .filter-badge.verified i {
-    color: #f5c518;
+    color: #f5c518; /* 노란색 */
 }
 
+/* 필터 초기화 버튼 */
 .reset-filters {
     background: none;
     border: none;
-    color: #0066cc;
+    color: #0066cc; /* 파란색 텍스트 */
     font-size: 14px;
     cursor: pointer;
 }
 
-/* 영화 그리드 */
+/* ========================================================= */
+/* 🎬 영화 그리드 (영화 카드 레이아웃) */
+/* ========================================================= */
+
+/* 영화 카드 그리드 컨테이너 (반응형 자동 배치) */
 .movies-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* 자동으로 열 개수 조정 */
+    gap: 20px; /* 카드 간 간격 */
 }
 
+/* 개별 영화 카드 */
 .movie-card {
     background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
+    border-radius: 8px; /* 둥근 모서리 */
+    overflow: hidden; /* 자식 요소가 모서리 밖으로 나가지 않도록 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+    transition: transform 0.3s; /* 부드러운 이동 효과 */
     cursor: pointer;
 }
 
+/* 영화 카드 마우스 오버 효과 (살짝 떠오름) */
 .movie-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px); /* 위로 5px 이동 */
 }
 
+/* 포스터 이미지 컨테이너 (비율 유지) */
 .poster-container {
     position: relative;
-    padding-top: 150%;
-    background-color: #eee;
+    padding-top: 150%; /* 세로가 가로의 1.5배 (포스터 비율) */
+    background-color: #eee; /* 이미지 로딩 전 배경 */
 }
 
+/* 포스터 이미지 */
 .poster-container img {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* 비율 유지하며 영역 채우기 */
 }
 
+/* 재생 버튼 (포스터 위에 오버레이) */
 .play-button {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%); /* 정중앙 위치 */
     width: 40px;
     height: 40px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.7); /* 반투명 검은 배경 */
+    border-radius: 50%; /* 원형 */
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
-    opacity: 0;
-    transition: opacity 0.3s;
+    opacity: 0; /* 기본적으로 숨김 */
+    transition: opacity 0.3s; /* 부드러운 표시/숨김 전환 */
 }
 
+/* 포스터에 마우스 올리면 재생 버튼 표시 */
 .poster-container:hover .play-button {
     opacity: 1;
 }
 
+/* 영화 정보 영역 (제목, 평점 등) */
 .movie-info {
     padding: 15px;
 }
 
+/* 평점 표시 영역 (관객평, 평론가 평점) */
 .ratings {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
 }
 
+/* 토마토미터 평점 (신선도 점수) */
 .tomatometer {
-    color: #6cc04a;
+    color: #6cc04a; /* 초록색 */
 }
 
+/* 관객 평점 */
 .audience {
     color: #333;
 }
 
+/* 영화 제목 (2줄까지만 표시, 초과 시 말줄임표) */
 .movie-title {
     font-size: 16px;
     margin-bottom: 5px;
     font-weight: 600;
     line-height: 1.4;
-    height: 2.8em;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    height: 2.8em; /* 2줄 높이 고정 */
+    overflow: hidden; /* 넘치는 텍스트 숨김 */
+    text-overflow: ellipsis; /* 말줄임표 (...) */
     /* 표준 CSS를 사용한 2줄 말줄임 */
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* 구형 브라우저 호환성 */
-    line-clamp: 2; /* 표준 CSS 속성 */
+    -webkit-line-clamp: 2; /* 2줄까지만 표시 */
+    line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
+/* 개봉일 표시 */
 .movie-date {
     font-size: 14px;
-    color: #666;
+    color: #666; /* 회색 텍스트 */
     margin-bottom: 10px;
 }
 
+/* 관심 목록 추가 버튼 */
 .watchlist-btn {
     width: 100%;
     padding: 8px 0;
@@ -407,18 +481,24 @@ button {
     transition: background-color 0.3s;
 }
 
+/* 관심 목록 버튼 마우스 오버 효과 */
 .watchlist-btn:hover {
     background-color: #e0e0e0;
 }
 
-/* 갤러리 페이지 */
+/* ========================================================= */
+/* 📸 갤러리 페이지 (게시판) */
+/* ========================================================= */
+
+/* 갤러리 헤더 */
 .gallery-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* 양쪽 끝 정렬 */
     align-items: center;
     margin-bottom: 20px;
 }
 
+/* 게시물 컨테이너 */
 .posts-container {
     background-color: white;
     border-radius: 8px;
@@ -427,52 +507,61 @@ button {
     margin-bottom: 20px;
 }
 
+/* 개별 게시물 */
 .post {
     display: flex;
     padding: 15px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eee; /* 구분선 */
     cursor: pointer;
 }
 
+/* 게시물 마우스 오버 효과 */
 .post:hover {
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* 연한 회색 배경 */
 }
 
+/* 게시물 썸네일 이미지 */
 .post-thumbnail {
     width: 100px;
     height: 70px;
     margin-right: 15px;
     border-radius: 4px;
     overflow: hidden;
-    flex-shrink: 0;
+    flex-shrink: 0; /* 크기 고정 */
 }
 
+/* 썸네일 이미지 */
 .post-thumbnail img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* 비율 유지하며 영역 채우기 */
 }
 
+/* 게시물 정보 영역 */
 .post-info {
-    flex-grow: 1;
+    flex-grow: 1; /* 남은 공간 모두 차지 */
 }
 
+/* 게시물 제목 */
 .post-title {
     font-size: 16px;
     margin-bottom: 5px;
     font-weight: 600;
 }
 
+/* 게시물 메타 정보 (작성자, 날짜 등) */
 .post-meta {
     display: flex;
     font-size: 14px;
     color: #666;
 }
 
+/* 작성자 정보 */
 .post-author {
     margin-right: 10px;
 }
 
+/* 인기 게시물 영역 */
 .popular-posts {
     background-color: white;
     border-radius: 8px;
@@ -480,37 +569,45 @@ button {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 인기 게시물 제목 */
 .popular-posts h3 {
     margin-bottom: 15px;
     font-size: 18px;
-    color: #d9230f;
+    color: #d9230f; /* 빨간색 강조 */
 }
 
+/* 인기 게시물 리스트 */
 .popular-list {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* 세로 배치 */
     gap: 10px;
 }
 
+/* 개별 인기 게시물 항목 */
 .popular-item {
     display: flex;
     align-items: center;
 }
 
+/* 순위 뱃지 (1, 2, 3 등) */
 .rank {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 24px;
     height: 24px;
-    background-color: #e74c3c;
+    background-color: #e74c3c; /* 빨간 배경 */
     color: white;
     border-radius: 4px;
     margin-right: 10px;
     font-size: 14px;
 }
 
-/* 영화 상세 페이지 */
+/* ========================================================= */
+/* 🎥 영화 상세 페이지 */
+/* ========================================================= */
+
+/* 뒤로가기 버튼 */
 .back-button {
     background-color: #f0f0f0;
     border: none;
@@ -518,30 +615,34 @@ button {
     border-radius: 4px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 5px; /* 아이콘과 텍스트 간격 */
     margin-bottom: 20px;
     transition: background-color 0.3s;
 }
 
+/* 뒤로가기 버튼 마우스 오버 효과 */
 .back-button:hover {
     background-color: #e0e0e0;
 }
 
+/* 영화 상세 배너 (상단 큰 배너 이미지) */
 .movie-detail-banner {
-    background-color: #2c3e50;
+    background-color: #2c3e50; /* 기본 배경색 */
     color: white;
     padding: 40px 0;
     margin-bottom: 20px;
     position: relative;
-    background-size: cover;
-    background-position: center;
+    background-size: cover; /* 배경 이미지 전체 덮기 */
+    background-position: center; /* 배경 이미지 중앙 정렬 */
 }
 
+/* 배너 오버레이 (어두운 반투명 레이어) */
 .banner-overlay {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.6); /* 반투명 검은색 */
     padding: 40px 0;
 }
 
+/* 영화 상세 콘텐츠 (포스터 + 정보) */
 .movie-detail-content {
     display: flex;
     max-width: 1200px;
@@ -549,69 +650,80 @@ button {
     padding: 0 5%;
 }
 
+/* 큰 포스터 이미지 */
 .movie-poster-large {
     width: 250px;
     border-radius: 8px;
     overflow: hidden;
     margin-right: 30px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* 크기 고정 */
 }
 
+/* 포스터 이미지 */
 .movie-poster-large img {
     width: 100%;
     display: block;
 }
 
+/* 영화 상세 정보 텍스트 영역 */
 .movie-detail-info {
     color: white;
 }
 
+/* 영화 제목 */
 .movie-detail-title {
     font-size: 32px;
     margin-bottom: 5px;
 }
 
+/* 원제 (영어 제목) */
 .movie-detail-original {
     font-size: 18px;
     margin-bottom: 20px;
-    opacity: 0.8;
+    opacity: 0.8; /* 약간 투명하게 */
 }
 
+/* 영화 통계 영역 (평점, 예매율 등) */
 .movie-stats {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* 양쪽 끝 정렬 */
     align-items: center;
     margin-bottom: 20px;
 }
 
+/* 통계 그룹 (여러 통계를 가로로 배치) */
 .stat-group {
     display: flex;
     gap: 20px;
 }
 
+/* 개별 통계 항목 */
 .stat-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* 세로 배치 */
     align-items: center;
 }
 
+/* 통계 값 (숫자) */
 .stat-value {
     font-size: 24px;
     font-weight: 600;
-    color: #2e3191;
+    color: #2e3191; /* 남색 */
 }
 
+/* 통계 레이블 (설명 텍스트) */
 .stat-label {
     font-size: 14px;
     color: #666;
 }
 
+/* 예매 버튼 */
 .reserve-btn {
-    background-color: #f5c518;
+    background-color: #f5c518; /* 노란색 */
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -619,31 +731,36 @@ button {
     transition: background-color 0.3s;
 }
 
+/* 예매 버튼 마우스 오버 효과 */
 .reserve-btn:hover {
-    background-color: #e0b412;
+    background-color: #e0b412; /* 더 진한 노란색 */
 }
 
+/* 영화 탭 메뉴 (상세정보, 리뷰 등) */
 .movie-tabs {
     display: flex;
     margin-bottom: 20px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #ddd; /* 하단 구분선 */
 }
 
+/* 탭 버튼 */
 .tab-btn {
     padding: 10px 20px;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: 2px solid transparent; /* 활성화 시 표시될 밑줄 */
     font-size: 16px;
     transition: all 0.3s;
 }
 
+/* 활성화된 탭 */
 .tab-btn.active {
-    border-bottom-color: #2e3191;
+    border-bottom-color: #2e3191; /* 남색 밑줄 */
     color: #2e3191;
     font-weight: 600;
 }
 
+/* 리뷰 컨테이너 */
 .reviews-container {
     background-color: white;
     border-radius: 8px;
@@ -651,30 +768,34 @@ button {
     padding: 20px;
 }
 
+/* 개별 리뷰 */
 .review {
     display: flex;
     padding: 15px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eee; /* 구분선 */
 }
 
+/* 마지막 리뷰는 구분선 제거 */
 .review:last-child {
     border-bottom: none;
 }
 
+/* 리뷰 작성자 정보 영역 */
 .reviewer {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* 세로 배치 */
     align-items: center;
     margin-right: 20px;
     width: 80px;
 }
 
+/* 아바타 (프로필 이미지 대신 이니셜 표시) */
 .avatar {
     width: 50px;
     height: 50px;
-    background-color: #2e3191;
+    background-color: #2e3191; /* 남색 배경 */
     color: white;
-    border-radius: 50%;
+    border-radius: 50%; /* 원형 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -682,21 +803,25 @@ button {
     margin-bottom: 5px;
 }
 
+/* 리뷰 작성자 이름 */
 .reviewer-name {
     font-size: 14px;
     text-align: center;
 }
 
+/* 리뷰 콘텐츠 영역 */
 .review-content {
-    flex-grow: 1;
+    flex-grow: 1; /* 남은 공간 모두 차지 */
 }
 
+/* 리뷰 평점 표시 */
 .review-rating {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
 }
 
+/* 평점 점수 */
 .rating-score {
     font-size: 18px;
     font-weight: 600;
@@ -704,45 +829,56 @@ button {
     margin-right: 10px;
 }
 
+/* 평점 레이블 */
 .rating-label {
     font-size: 14px;
     color: #666;
 }
 
+/* 리뷰 텍스트 */
 .review-text {
     line-height: 1.5;
 }
 
-/* 댓글 섹션 */
+/* ========================================================= */
+/* 💬 댓글(리뷰) 섹션 */
+/* ========================================================= */
+
+/* 댓글 섹션 컨테이너 */
 .comments-section {
     margin-top: 20px;
     padding: 20px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #ddd; /* 상단 구분선 */
     background-color: #fff;
 }
 
+/* 댓글 섹션 제목 */
 .comments-section h3 {
     font-size: 18px;
     color: #333;
     margin-bottom: 15px;
 }
 
+/* 리뷰 작성 버튼 */
 #commentWriteButton {
-    background-color: #2e3191;
+    background-color: #2e3191; /* 남색 배경 */
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
 }
 
+/* 리뷰 작성 버튼 마우스 오버 효과 */
 #commentWriteButton:hover {
-    background-color: #4b50b5;
+    background-color: #4b50b5; /* 밝은 남색 */
 }
 
+/* 리뷰 작성 폼 (기본적으로 숨김) */
 #commentForm {
     margin-top: 15px;
 }
 
+/* 리뷰 텍스트 입력창 */
 #commentText {
     width: 100%;
     height: 80px;
@@ -751,6 +887,7 @@ button {
     border: 1px solid #ddd;
 }
 
+/* 리뷰 제출/취소 버튼 */
 #submitComment, #cancelComment {
     margin-top: 10px;
     padding: 8px 15px;
@@ -758,63 +895,82 @@ button {
     cursor: pointer;
 }
 
+/* 리뷰 제출 버튼 */
 #submitComment {
-    background-color: #2e3191;
+    background-color: #2e3191; /* 남색 */
     color: white;
 }
 
+/* 리뷰 제출 버튼 마우스 오버 효과 */
 #submitComment:hover {
     background-color: #4b50b5;
 }
 
+/* 리뷰 취소 버튼 */
 #cancelComment {
-    background-color: #ddd;
+    background-color: #ddd; /* 회색 */
 }
 
+/* 리뷰 취소 버튼 마우스 오버 효과 */
 #cancelComment:hover {
-    background-color: #bbb;
+    background-color: #bbb; /* 진한 회색 */
 }
 
+/* 댓글 리스트 */
 .comments-list {
     margin-top: 20px;
 }
 
+/* 개별 댓글 항목 */
 .comment-item {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #ddd; /* 구분선 */
     padding-bottom: 10px;
     margin-bottom: 10px;
 }
 
+/* 댓글 작성자 이름 */
 .comment-item .username {
-    font-weight: bold;
+    font-weight: bold; /* 굵게 */
 }
-/* 10점만점에 몇점점 */
+
+/* ========================================================= */
+/* ⭐ 별점 UI (10점 만점 별점 시스템) */
+/* ========================================================= */
+
+/* 별점 컨테이너 */
 #starRating {
     display: flex;
-    gap: 2px;
+    gap: 2px; /* 별 사이 간격 */
 }
 
+/* 개별 별 아이콘 */
 .star-icon {
     font-size: 24px;
-    color: #ddd;
+    color: #ddd; /* 기본 회색 */
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color 0.2s; /* 부드러운 색상 전환 */
 }
 
+/* 선택된 별 (노란색) */
 .star-icon.selected {
-    color: #FFD700;
+    color: #FFD700; /* 금색 */
 }
-/* 10점만점에 몇점점 */
 
+/* 추천 여부 레이블 */
 .recommend-label {
-    color: #2e3191;
+    color: #2e3191; /* 남색 */
     font-weight: 500;
     margin-left: 6px;
-    font-size: 15px; }
+    font-size: 15px;
+}
 
-/* 관람평 삭제하기기 */
+/* ========================================================= */
+/* 🗑️ 관람평 삭제 버튼 */
+/* ========================================================= */
+
+/* 삭제 버튼 */
 .delete-comment {
-    background: #d9230f;
+    background: #d9230f; /* 빨간색 배경 */
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -823,147 +979,186 @@ button {
     cursor: pointer;
 }
 
+/* 삭제 버튼 마우스 오버 효과 */
 .delete-comment:hover {
-    background: #a4170b; }
+    background: #a4170b; /* 진한 빨간색 */
+}
 
-/* 관람평 삭제하기기 */
+/* ========================================================= */
+/* 📝 게시물 상세 페이지 */
+/* ========================================================= */
 
-/* 게시물 상세 페이지 */
+/* 게시물 헤더 */
 .post-detail-header {
     margin-bottom: 20px;
 }
 
+/* 게시물 제목 */
 .post-detail-title {
     font-size: 24px;
     margin-bottom: 10px;
 }
 
+/* 게시물 메타 정보 (작성자, 날짜 등) */
 .post-detail-meta {
     display: flex;
     font-size: 14px;
-    color: #666;
+    color: #666; /* 회색 텍스트 */
     margin-bottom: 20px;
 }
 
+/* 게시물 작성자 */
 .post-detail-author {
     margin-right: 15px;
 }
 
+/* 게시물 본문 */
 .post-detail-content {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    line-height: 1.7;
+    line-height: 1.7; /* 줄 간격 */
 }
 
+/* 게시물 내 이미지들 */
 .post-images {
     margin-top: 20px;
 }
 
+/* 개별 이미지 */
 .post-image {
     max-width: 100%;
     border-radius: 4px;
     margin-bottom: 15px;
 }
 
-/* 로딩 애니메이션 */
+/* ========================================================= */
+/* ⏳ 로딩 애니메이션 */
+/* ========================================================= */
+
+/* 로딩 표시 컨테이너 */
 .loading {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* 세로 배치 */
     justify-content: center;
     align-items: center;
     padding: 40px 0;
-    color: #2e3191;
-    grid-column: 1 / -1;
+    color: #2e3191; /* 남색 */
+    grid-column: 1 / -1; /* 그리드 전체 열 차지 */
 }
 
+/* 로딩 스피너 아이콘 */
 .loading i {
     font-size: 24px;
     margin-bottom: 10px;
 }
 
+/* ========================================================= */
+/* 🦶 푸터 영역 */
+/* ========================================================= */
+
 /* 푸터 스타일 */
 .main-footer {
-    background-color: #333;
+    background-color: #333; /* 어두운 배경 */
     color: white;
     padding: 20px 0;
     text-align: center;
     margin-top: 40px;
 }
 
+/* 면책 조항 텍스트 */
 .disclaimer {
     font-size: 12px;
-    color: #999;
+    color: #999; /* 밝은 회색 */
     margin-top: 10px;
 }
 
-/* 반응형 디자인 */
+/* ========================================================= */
+/* 📱 반응형 디자인 (모바일 대응) */
+/* ========================================================= */
+
+/* 태블릿 크기 (768px 이하) */
 @media (max-width: 768px) {
+    /* 헤더를 세로 배치 */
     .header-container {
         flex-direction: column;
         gap: 15px;
     }
     
+    /* 헤더 오른쪽 영역을 전체 너비로 */
     .header-right {
         width: 100%;
-        align-items: center;
+        align-items: center; /* 가운데 정렬 */
     }
     
+    /* 검색창을 전체 너비로 */
     .search-area {
         width: 100%;
     }
     
+    /* 네비게이션 메뉴 줄바꿈 허용 */
     .main-nav ul {
         flex-wrap: wrap;
     }
     
+    /* 섹션 헤더를 세로 배치 */
     .section-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
     
+    /* 영화 그리드를 2열로 */
     .movies-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
+    /* 영화 상세 페이지를 세로 배치 */
     .movie-detail-content {
         flex-direction: column;
         align-items: center;
     }
     
+    /* 포스터 오른쪽 여백 제거, 하단 여백 추가 */
     .movie-poster-large {
         margin-right: 0;
         margin-bottom: 20px;
     }
     
+    /* 영화 통계를 세로 배치 */
     .movie-stats {
         flex-direction: column;
         gap: 20px;
     }
     
+    /* 통계 그룹 줄바꿈 및 가운데 정렬 */
     .stat-group {
         flex-wrap: wrap;
         justify-content: center;
     }
 }
 
+/* 모바일 크기 (480px 이하) */
 @media (max-width: 480px) {
+    /* 트렌딩 섹션을 세로 배치 */
     .trending-container {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
     
+    /* 영화 그리드를 1열로 */
     .movies-grid {
         grid-template-columns: 1fr;
     }
     
+    /* 리뷰를 세로 배치 */
     .review {
         flex-direction: column;
     }
     
+    /* 리뷰 작성자 정보를 가로 배치 */
     .reviewer {
         flex-direction: row;
         width: 100%;
@@ -973,118 +1168,142 @@ button {
     }
 }
 
+/* ========================================================= */
+/* ✏️ 글쓰기 버튼 (플로팅 버튼) */
+/* ========================================================= */
+
 /* 글쓰기 버튼 스타일 */
 #write-button {
-    background-color: #2e3191;
+    background-color: #2e3191; /* 남색 배경 */
     color: white;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* 부드러운 전환 */
 }
 
-/* 호버 효과 */
+/* 글쓰기 버튼 마우스 오버 효과 */
 #write-button:hover {
-    background-color: #4b50b5;
-    transform: translateY(-2px);
+    background-color: #4b50b5; /* 밝은 남색 */
+    transform: translateY(-2px); /* 살짝 위로 이동 */
 }
 
-/* 클릭 시 비활성화 상태 */
+/* 글쓰기 버튼 클릭 효과 */
 #write-button:active {
-    background-color: #1c1f6e;
+    background-color: #1c1f6e; /* 진한 남색 */
 }
 
+/* ========================================================= */
+/* 📋 게시판 테이블 스타일 */
+/* ========================================================= */
 
-/* 게시판 테이블 스타일 */
+/* 게시판 테이블 */
 .board-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: collapse; /* 테두리 겹침 제거 */
     margin-top: 30px;
 }
 
+/* 테이블 셀 (제목, 작성자, 날짜 등) */
 .board-table th, .board-table td {
     padding: 10px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
+    text-align: center; /* 가운데 정렬 */
+    border-bottom: 1px solid #ddd; /* 하단 구분선 */
 }
 
+/* 테이블 헤더 */
 .board-table th {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* 연한 회색 배경 */
     font-weight: bold;
 }
 
+/* 제목 열만 왼쪽 정렬 */
 .board-table td:nth-child(2) {
     text-align: left;
 }
 
+/* 테이블 행 마우스 오버 효과 */
 .board-table tr:hover {
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* 연한 회색 배경 */
 }
 
-/* 페이징 스타일 */
+/* ========================================================= */
+/* 📄 페이지네이션 (페이지 번호) */
+/* ========================================================= */
+
+/* 페이지네이션 컨테이너 */
 .pagination {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* 가운데 정렬 */
     margin-top: 20px;
 }
 
+/* 페이지 번호 링크 */
 .pagination a {
     display: inline-block;
     padding: 5px 10px;
     margin: 0 5px;
     text-decoration: none;
     color: #333;
-    border: 1px solid #ddd;
+    border: 1px solid #ddd; /* 테두리 */
 }
 
+/* 현재 활성화된 페이지 */
 .pagination a.active {
-    background-color: #2e3191;
+    background-color: #2e3191; /* 남색 배경 */
     color: white;
 }
 
-/*AI 리뷰 생성 */
+/* ========================================================= */
+/* 🤖 AI 리뷰 생성 모달 */
+/* ========================================================= */
+
+/* 모달 오버레이 (전체 화면 어둡게) */
 .modal {
-    display: none;
-    position: fixed;
+    display: none; /* 기본적으로 숨김 */
+    position: fixed; /* 화면 고정 */
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    width: 100vw; /* 전체 너비 */
+    height: 100vh; /* 전체 높이 */
+    background: rgba(0, 0, 0, 0.5); /* 반투명 검은 배경 */
+    z-index: 1000; /* 최상위 레이어 */
     justify-content: center;
     align-items: center;
 }
 
+/* 모달 표시 상태 */
 .modal.show {
     display: flex;
 }
 
+/* 모달 내부 콘텐츠 박스 */
 .modal-content {
     background: #fff;
     padding: 24px;
     border-radius: 8px;
     min-width: 320px;
-    max-width: 700px;
-    /* 가로폭 확장 예시 */
-    min-height: 600px;
-    /* 세로 크기 확장 */
-    max-height: 90vh;
-    /* 화면 높이의 90%까지 허용 */
+    max-width: 700px; /* 최대 가로 크기 */
+    min-height: 600px; /* 최소 세로 크기 */
+    max-height: 90vh; /* 화면 높이의 90% */
     position: relative;
-    overflow-y: auto;
+    overflow-y: auto; /* 내용이 많으면 스크롤 */
 }
+
+/* 모바일 대응 (600px 이하) */
 @media (max-width: 600px) {
     .modal-content {
-        min-width: 90vw;
+        min-width: 90vw; /* 화면 너비의 90% */
         max-width: 98vw;
         min-height: 60vh;
         max-height: 95vh;
         padding: 10px;
     }
 }
+
+/* 모달 닫기 버튼 (X) */
 .close-modal {
     position: absolute;
     top: 12px;
@@ -1093,55 +1312,60 @@ button {
     font-size: 1.5rem;
 }
 
+/* 감정/평점/추천 버튼 그룹 */
 .emotion-buttons,
 .score-buttons,
 .recommend-buttons {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-wrap: wrap; /* 줄바꿈 허용 */
+    gap: 8px; /* 버튼 간 간격 */
     margin-bottom: 12px;
 }
 
+/* 개별 선택 버튼 */
 .emotion-btn,
 .score-btn,
 .recommend-btn {
     padding: 6px 12px;
-    border-radius: 20px;
+    border-radius: 20px; /* 둥근 모서리 */
     border: 1px solid #ddd;
-    background: #f5f5f5;
+    background: #f5f5f5; /* 연한 회색 배경 */
     cursor: pointer;
 }
 
+/* 선택된 버튼 */
 .emotion-btn.selected,
 .score-btn.selected,
 .recommend-btn.selected {
-    background: #2e3191;
+    background: #2e3191; /* 남색 배경 */
     color: #fff;
 }
 
-/* AI 리뷰생성 버튼 스타일 */
+/* AI 리뷰 생성 버튼 (그라데이션 스타일) */
 #aiReviewBtn {
-    background: linear-gradient(90deg, #2e3191 80%, #18308a 100%);
+    background: linear-gradient(90deg, #2e3191 80%, #18308a 100%); /* 남색 그라데이션 */
     color: white;
     padding: 12px 32px;
     font-size: 17px;
     border: none;
-    border-radius: 25px;
-    box-shadow: 0 2px 5px rgba(46, 49, 145, 0.06);
-    transition: background 0.2s, transform 0.18s;
+    border-radius: 25px; /* 둥근 모서리 */
+    box-shadow: 0 2px 5px rgba(46, 49, 145, 0.06); /* 그림자 */
+    transition: background 0.2s, transform 0.18s; /* 부드러운 전환 */
     font-weight: 700;
 }
 
+/* AI 리뷰 생성 버튼 마우스 오버 효과 */
 #aiReviewBtn:hover {
-    background: linear-gradient(90deg, #4b50b5 80%, #2e3191 100%);
-    transform: scale(1.03);
+    background: linear-gradient(90deg, #4b50b5 80%, #2e3191 100%); /* 밝은 남색 */
+    transform: scale(1.03); /* 살짝 확대 */
 }
 
+/* AI 리뷰 생성 버튼 클릭 효과 */
 #aiReviewBtn:active {
-    background-color: #1c1f6e;
+    background-color: #1c1f6e; /* 진한 남색 */
 }
 
-
+/* AI 리뷰 생성 실행 버튼 (모달 내부) */
 #generateAIReview {
     background: linear-gradient(90deg, #2e3191 80%, #18308a 100%);
     color: white;
@@ -1154,30 +1378,41 @@ button {
     font-weight: 700;
 }
 
+/* AI 리뷰 생성 실행 버튼 마우스 오버 효과 */
 #generateAIReview:hover {
     background: linear-gradient(90deg, #4b50b5 80%, #2e3191 100%);
     transform: scale(1.03);
 }
 
+/* AI 리뷰 생성 실행 버튼 클릭 효과 */
 #generateAIReview:active {
     background-color: #1c1f6e;
 }
-/*AI 리뷰 생성 */
-/*AI 리뷰 결과물물 */
+
+/* ========================================================= */
+/* 📝 AI 리뷰 결과물 표시 */
+/* ========================================================= */
+
+/* 리뷰 결과 박스 */
 .review-box {
     border: 1px solid #ddd;
     padding: 12px;
     margin: 8px 0;
     border-radius: 4px;
-    background: #f8f9fa;
+    background: #f8f9fa; /* 연한 회색 배경 */
 }
 
+/* 리뷰 텍스트 내용 */
 .review-content {
     margin-top: 6px;
-    white-space: pre-wrap;
+    white-space: pre-wrap; /* 줄바꿈 보존 */
 }
-/*AI 리뷰 결과물물 */
-/*AI 리뷰 결과물 선택 */
+
+/* ========================================================= */
+/* ✅ AI 리뷰 선택 (라디오 버튼) */
+/* ========================================================= */
+
+/* AI 리뷰 선택 박스 (라디오 버튼 포함) */
 .ai-review-radio-box {
     display: flex;
     align-items: flex-start;
@@ -1188,66 +1423,74 @@ button {
     margin-bottom: 10px;
     background: #f8f9fa;
     cursor: pointer;
-    transition: border 0.2s;
+    transition: border 0.2s; /* 부드러운 테두리 전환 */
 }
 
+/* 라디오 버튼 */
 .ai-review-radio-box input[type="radio"] {
     margin-top: 4px;
-    accent-color: #2e3191;
+    accent-color: #2e3191; /* 남색 라디오 버튼 */
 }
 
+/* 선택된 리뷰 박스 강조 */
 .ai-review-radio-box:has(input[type="radio"]:checked) {
-    border: 2px solid #2e3191;
-    background: #eef0fb;
+    border: 2px solid #2e3191; /* 남색 테두리 */
+    background: #eef0fb; /* 연한 남색 배경 */
 }
 
+/* 리뷰 레이블 (번호) */
 .review-label {
     font-weight: bold;
     margin-right: 8px;
     min-width: 70px;
 }
 
+/* 리뷰 내용 텍스트 */
 .review-content {
-    flex: 1;
-    white-space: pre-wrap;
+    flex: 1; /* 남은 공간 모두 차지 */
+    white-space: pre-wrap; /* 줄바꿈 보존 */
 }
 
+/* ========================================================= */
+/* 💬 게시글 댓글 섹션 */
+/* ========================================================= */
 
-/*AI 리뷰 결과물 선택 */
-
-/* --- 댓글 섹션 스타일 --- */
+/* 댓글 섹션 컨테이너 */
 .comments-section-container {
     margin-top: 40px;
     padding-top: 20px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eee; /* 상단 구분선 */
 }
 
+/* 댓글 섹션 제목 */
 .comments-title {
     font-size: 1.2rem;
     margin-bottom: 20px;
     color: #333;
 }
 
-/* 댓글 작성 폼 */
+/* 댓글 작성 폼 (텍스트 입력창 + 버튼) */
 .comment-form {
     display: flex;
-    gap: 10px;
+    gap: 10px; /* 입력창과 버튼 사이 간격 */
     margin-bottom: 30px;
 }
 
+/* 댓글 입력 텍스트 영역 */
 .comment-form textarea {
-    flex-grow: 1;
+    flex-grow: 1; /* 남은 공간 모두 차지 */
     height: 80px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    resize: vertical;
+    resize: vertical; /* 세로 크기만 조절 가능 */
     font-size: 0.95rem;
 }
 
+/* 댓글 제출 버튼 */
 .comment-form button {
     padding: 0 20px;
-    background-color: #337ab7;
+    background-color: #337ab7; /* 파란색 배경 */
     color: white;
     border: none;
     border-radius: 4px;
@@ -1256,107 +1499,118 @@ button {
     transition: background-color 0.2s;
 }
 
+/* 댓글 제출 버튼 마우스 오버 효과 */
 .comment-form button:hover {
-    background-color: #286090;
+    background-color: #286090; /* 진한 파란색 */
 }
 
 /* 댓글 목록 */
 #comments-list {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    flex-direction: column; /* 세로 배치 */
+    gap: 15px; /* 댓글 간 간격 */
 }
 
+/* 개별 댓글 항목 */
 .comment-item {
     padding: 15px;
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* 연한 회색 배경 */
     border: 1px solid #e9e9e9;
     border-radius: 5px;
-    position: relative;
+    position: relative; /* 삭제 버튼 절대 위치 기준 */
 }
 
+/* 댓글 메타 정보 (작성자, 날짜) */
 .comment-meta {
     margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 0.85rem;
-    color: #777;
+    color: #777; /* 회색 텍스트 */
 }
 
+/* 댓글 작성자 이름 */
 .comment-author {
     font-weight: bold;
     color: #444;
 }
 
+/* 댓글 내용 텍스트 */
 .comment-content {
     line-height: 1.6;
     color: #333;
 }
 
+/* 댓글 삭제 버튼 (우측 상단) */
 .comment-delete-btn {
     position: absolute;
     top: 10px;
     right: 10px;
     background: none;
     border: none;
-    color: #aaa;
+    color: #aaa; /* 회색 */
     cursor: pointer;
     font-size: 0.8rem;
 }
 
+/* 댓글 삭제 버튼 마우스 오버 효과 */
 .comment-delete-btn:hover {
-    color: #d9534f;
+    color: #d9534f; /* 빨간색 */
     text-decoration: underline;
 }
 
+/* 댓글이 없을 때 표시 */
 .no-comments {
     text-align: center;
     color: #888;
     padding: 20px 0;
 }
 
-/* 게시글 본문 스타일 추가 */
+/* 게시글 본문 스타일 */
 .post-detail-body {
     padding: 20px 0;
     line-height: 1.7;
     font-size: 1.05rem;
-    min-height: 150px;
-    /* 내용이 적어도 최소 높이 유지 */
+    min-height: 150px; /* 내용이 적어도 최소 높이 유지 */
 }
 
 /* ========================================================= */
-/* 👇👇👇 글쓰기 페이지 (write.html) 전용 스타일 (추가) 👇👇👇 */
+/* ✏️ 글쓰기 페이지 (write.html) 전용 스타일 */
 /* ========================================================= */
+
+/* 글쓰기 페이지 섹션 (index.html 내부 페이지) */
 #write-post {
-    background-color: #f5f5f5;
-    min-height: 100vh;
+    background-color: #f5f5f5; /* 연한 회색 배경 */
+    min-height: 100vh; /* 최소 높이 전체 화면 */
     padding: 20px 0;
 }
 
+/* 글쓰기 컨테이너 (에디터 영역) */
 .write-container {
-    max-width: 1000px;
-    /* ✅ 에디터 전체 가로 크기 고정 */
-    margin: 20px auto;
-    /* 페이지 중앙 정렬 및 위아래 여백 */
+    max-width: 1000px; /* 최대 가로 크기 고정 */
+    margin: 20px auto; /* 중앙 정렬 및 위아래 여백 */
     padding: 40px;
-    background-color: #ffffff;
+    background-color: #ffffff; /* 흰색 배경 */
     border: 1px solid #d9d9d9;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
     border-radius: 4px;
 }
 
+/* 글쓰기 페이지 제목 */
 .write-container h2 {
     font-size: 1.8rem;
     padding-bottom: 15px;
     margin-bottom: 25px;
-    border-bottom: 2px solid #333;
+    border-bottom: 2px solid #333; /* 하단 구분선 */
 }
 
+/* 폼 그룹 (제목, 내용 입력 영역) */
 .write-container .form-group {
     margin-bottom: 20px;
 }
 
+/* 폼 레이블 */
 .write-container label {
     display: block;
     margin-bottom: 8px;
@@ -1365,38 +1619,36 @@ button {
     font-size: 14px;
 }
 
-/* 제목 입력칸 - DCInside 스타일 */
+/* 제목 입력칸 (DCInside 스타일) */
 .write-container #write-title {
     width: 100%;
-    height: 50px;
-    /* ✅ 높이 고정 */
+    height: 50px; /* 높이 고정 */
     padding: 0 15px;
     font-size: 1rem;
     border: 1px solid #ddd;
     border-radius: 3px;
     transition: all 0.2s;
-    box-sizing: border-box;
-    background-color: #fafafa;
+    box-sizing: border-box; /* padding 포함한 전체 크기 */
+    background-color: #fafafa; /* 연한 회색 배경 */
 }
 
+/* 제목 입력칸 포커스 효과 */
 .write-container #write-title:focus {
     outline: none;
-    border-color: #3b5998;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.1);
+    border-color: #3b5998; /* 파란색 테두리 */
+    background-color: #ffffff; /* 흰색 배경 */
+    box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.1); /* 파란색 그림자 */
 }
 
-/* 내용 입력칸 - DCInside 스타일 */
+/* 내용 입력칸 (DCInside 스타일) */
 .write-container #write-content {
     width: 100%;
-    height: 500px;
-    /* ✅ 높이 고정 (요청사항 반영) */
+    height: 500px; /* 높이 고정 */
     padding: 15px;
     font-size: 1rem;
     border: 1px solid #ddd;
     border-radius: 3px;
-    resize: none;
-    /* ✅ 사용자가 크기 조절 못하게 막기 */
+    resize: none; /* 사용자가 크기 조절 못하게 막기 */
     line-height: 1.7;
     transition: all 0.2s;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -1404,6 +1656,7 @@ button {
     background-color: #fafafa;
 }
 
+/* 내용 입력칸 포커스 효과 */
 .write-container #write-content:focus {
     outline: none;
     border-color: #3b5998;
@@ -1411,18 +1664,18 @@ button {
     box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.1);
 }
 
-/* 툴바 */
+/* 툴바 (이미지 추가, 자동 문장 생성 등) */
 .write-container .toolbar {
-    margin-top: -15px;
-    /* 내용 칸과 딱 붙이도록 */
+    margin-top: -15px; /* 내용 칸과 딱 붙이기 */
     padding: 10px;
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* 연한 회색 배경 */
     border: 1px solid #ccc;
-    border-top: none;
-    border-radius: 0 0 5px 5px;
+    border-top: none; /* 상단 테두리 제거 */
+    border-radius: 0 0 5px 5px; /* 하단만 둥근 모서리 */
     margin-bottom: 20px;
 }
 
+/* 툴바 버튼 */
 .write-container .toolbar button {
     background-color: #fff;
     border: 1px solid #ccc;
@@ -1432,14 +1685,15 @@ button {
     font-size: 0.9rem;
 }
 
-/* 등록/취소 버튼 - DCInside 스타일 */
+/* 등록/취소 버튼 영역 (DCInside 스타일) */
 .write-container .action-buttons {
-    text-align: right;
+    text-align: right; /* 오른쪽 정렬 */
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #e0e0e0; /* 상단 구분선 */
 }
 
+/* 등록/취소 버튼 공통 스타일 */
 .write-container .action-buttons button {
     padding: 12px 30px;
     border: none;
@@ -1447,27 +1701,111 @@ button {
     font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
-    margin-left: 8px;
+    margin-left: 8px; /* 버튼 간 간격 */
     transition: all 0.2s;
 }
 
 /* 취소 버튼 */
 .write-container #write-cancel-btn {
-    background-color: #f5f5f5;
+    background-color: #f5f5f5; /* 연한 회색 */
     color: #333;
     border: 1px solid #ddd;
 }
 
+/* 취소 버튼 마우스 오버 효과 */
 .write-container #write-cancel-btn:hover {
-    background-color: #e0e0e0;
+    background-color: #e0e0e0; /* 진한 회색 */
 }
 
 /* 등록 버튼 */
 .write-container #write-submit-btn {
-    background-color: #3b5998;
+    background-color: #3b5998; /* 파란색 */
     color: white;
 }
 
+/* 등록 버튼 마우스 오버 효과 */
 .write-container #write-submit-btn:hover {
-    background-color: #2d4373;
+    background-color: #2d4373; /* 진한 파란색 */
+}
+
+/* ========================================================= */
+/* 👍 좋아요/싫어요 버튼 스타일 */
+/* ========================================================= */
+
+/* 좋아요/싫어요 버튼 컨테이너 */
+.like-buttons {
+    display: flex;
+    gap: 10px; /* 버튼 간격 */
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* 좋아요/싫어요 버튼 공통 스타일 */
+.like-btn,
+.dislike-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px; /* 아이콘과 텍스트 간격 */
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px; /* 둥근 모서리 */
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 좋아요 버튼 기본 스타일 (초록색) */
+.like-btn {
+    background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+}
+
+/* 좋아요 버튼 호버 효과 */
+.like-btn:hover {
+    background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* 싫어요 버튼 기본 스타일 (빨간색) */
+.dislike-btn {
+    background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+}
+
+/* 싫어요 버튼 호버 효과 */
+.dislike-btn:hover {
+    background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+/* 좋아요 버튼 활성 상태 (사용자가 좋아요 눌렀을 때) */
+.like-btn.active {
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.5);
+    transform: scale(1.05);
+}
+
+/* 싫어요 버튼 활성 상태 (사용자가 싫어요 눌렀을 때) */
+.dislike-btn.active {
+    background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+    box-shadow: 0 2px 8px rgba(198, 40, 40, 0.5);
+    transform: scale(1.05);
+}
+
+/* 좋아요/싫어요 카운트 숫자 */
+.like-count,
+.dislike-count {
+    font-weight: 600;
+    min-width: 20px; /* 숫자가 한자리에서 두자리로 늘어나도 레이아웃 안정적 */
+    text-align: center;
+}
+
+/* 버튼 비활성화 상태 (로그인 안했을 때) */
+.like-btn:disabled,
+.dislike-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }

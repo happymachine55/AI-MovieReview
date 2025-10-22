@@ -1056,12 +1056,26 @@ function loadBoardData(page = 1) {
                 <p>${comment.content}</p>
                 <span class="date">${new Date(comment.created_at).toLocaleString('ko-KR')}</span>
                 ${deleteBtnHtml}
+                <div class="like-buttons">
+                    <button class="like-btn" data-review-id="${comment.id}" data-type="like">
+                        <i class="fas fa-thumbs-up"></i>
+                        <span class="like-count">${comment.likes_count || 0}</span>
+                    </button>
+                    <button class="dislike-btn" data-review-id="${comment.id}" data-type="dislike">
+                        <i class="fas fa-thumbs-down"></i>
+                        <span class="dislike-count">${comment.dislikes_count || 0}</span>
+                    </button>
+                </div>
               `;
                         commentsList.appendChild(commentItem);
                     });
                 }
             
                 document.getElementById('commentCount').textContent = comments.length;
+
+                // ✅ 좋아요/싫어요 버튼 상태 불러오기 및 이벤트 연결
+                loadReviewLikeStates(comments);
+                attachReviewLikeEvents();
 
                 // 1. 관객평(관람평 평균) 계산
                 let audienceScore = '-';
@@ -1202,12 +1216,26 @@ function loadBoardData(page = 1) {
                         <span class="post-detail-author">${post.username || '익명'}</span>
                         <span class="post-detail-date">${new Date(post.created_at).toLocaleString('ko-KR')}</span>
                     </div>
+                    <div class="like-buttons" style="margin-top: 15px;">
+                        <button class="post-like-btn" data-post-id="${post.id}" data-type="like">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span class="like-count">${post.likes_count || 0}</span>
+                        </button>
+                        <button class="post-dislike-btn" data-post-id="${post.id}" data-type="dislike">
+                            <i class="fas fa-thumbs-down"></i>
+                            <span class="dislike-count">${post.dislikes_count || 0}</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="post-detail-body">
                     <p>${post.content.replace(/\n/g, '<br>')}</p>
                 </div>
             `;
                 postDetailContent.innerHTML = html;
+
+                // ✅ 게시글 좋아요 상태 불러오기 및 이벤트 연결
+                loadPostLikeState(postId);
+                attachPostLikeEvents(postId);
 
                 // ✅ URL에 게시글 ID 추가
                 //window.history.pushState({ page: 'post-detail', postId }, '', `/?postId=${postId}`);
@@ -1466,3 +1494,151 @@ function loadBoardData(page = 1) {
             }
         };
     }
+
+// ========================================================
+// 👍 리뷰 좋아요/싫어요 기능
+// ========================================================
+
+// 리뷰 좋아요 상태 불러오기
+function loadReviewLikeStates(reviews) {
+    if (!window.currentUserId) return; // 로그인 안했으면 스킵
+
+    reviews.forEach(review => {
+        fetch(`/api/reviews/${review.id}/like-status`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.liked) {
+                    const likeBtn = document.querySelector(`.like-btn[data-review-id="${review.id}"]`);
+                    if (likeBtn && data.like_type === 'like') {
+                        likeBtn.classList.add('active');
+                    }
+                    const dislikeBtn = document.querySelector(`.dislike-btn[data-review-id="${review.id}"]`);
+                    if (dislikeBtn && data.like_type === 'dislike') {
+                        dislikeBtn.classList.add('active');
+                    }
+                }
+            })
+            .catch(err => console.error('좋아요 상태 로드 오류:', err));
+    });
+}
+
+// 리뷰 좋아요/싫어요 버튼 이벤트 연결
+function attachReviewLikeEvents() {
+    document.querySelectorAll('.like-btn, .dislike-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!window.currentUserId) {
+                alert('로그인이 필요합니다!');
+                return;
+            }
+
+            const reviewId = this.dataset.reviewId;
+            const likeType = this.dataset.type; // 'like' or 'dislike'
+            const isActive = this.classList.contains('active');
+
+            // 좋아요/싫어요 토글 (같은 버튼 다시 클릭하면 취소)
+            fetch(`/api/reviews/${reviewId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ like_type: likeType })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // 서버에서 받은 최신 카운트로 업데이트
+                        const likeBtn = document.querySelector(`.like-btn[data-review-id="${reviewId}"]`);
+                        const dislikeBtn = document.querySelector(`.dislike-btn[data-review-id="${reviewId}"]`);
+                        
+                        if (likeBtn) {
+                            likeBtn.querySelector('.like-count').textContent = data.likes_count;
+                            likeBtn.classList.remove('active');
+                        }
+                        if (dislikeBtn) {
+                            dislikeBtn.querySelector('.dislike-count').textContent = data.dislikes_count;
+                            dislikeBtn.classList.remove('active');
+                        }
+
+                        // 추가되었으면 현재 버튼 활성화 (removed면 활성화 안함 = 토글 취소)
+                        if (data.action === 'added' || data.action === 'changed') {
+                            this.classList.add('active');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('좋아요 처리 오류:', err);
+                    alert('좋아요 처리 실패!');
+                });
+        });
+    });
+}
+
+// ========================================================
+// 👍 게시글 좋아요/싫어요 기능
+// ========================================================
+
+// 게시글 좋아요 상태 불러오기
+function loadPostLikeState(postId) {
+    if (!window.currentUserId) return;
+
+    fetch(`/api/posts/${postId}/like-status`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.liked) {
+                const likeBtn = document.querySelector(`.post-like-btn[data-post-id="${postId}"]`);
+                const dislikeBtn = document.querySelector(`.post-dislike-btn[data-post-id="${postId}"]`);
+                
+                if (likeBtn && data.like_type === 'like') {
+                    likeBtn.classList.add('active');
+                }
+                if (dislikeBtn && data.like_type === 'dislike') {
+                    dislikeBtn.classList.add('active');
+                }
+            }
+        })
+        .catch(err => console.error('게시글 좋아요 상태 로드 오류:', err));
+}
+
+// 게시글 좋아요/싫어요 버튼 이벤트 연결
+function attachPostLikeEvents(postId) {
+    document.querySelectorAll('.post-like-btn, .post-dislike-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!window.currentUserId) {
+                alert('로그인이 필요합니다!');
+                return;
+            }
+
+            const likeType = this.dataset.type; // 'like' or 'dislike'
+
+            fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ like_type: likeType })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // 서버에서 받은 최신 카운트로 업데이트
+                        const likeBtn = document.querySelector(`.post-like-btn[data-post-id="${postId}"]`);
+                        const dislikeBtn = document.querySelector(`.post-dislike-btn[data-post-id="${postId}"]`);
+                        
+                        if (likeBtn) {
+                            likeBtn.querySelector('.like-count').textContent = data.likes_count;
+                            likeBtn.classList.remove('active');
+                        }
+                        if (dislikeBtn) {
+                            dislikeBtn.querySelector('.dislike-count').textContent = data.dislikes_count;
+                            dislikeBtn.classList.remove('active');
+                        }
+
+                        // 추가되었으면 현재 버튼 활성화 (removed면 활성화 안함 = 토글 취소)
+                        if (data.action === 'added' || data.action === 'changed') {
+                            this.classList.add('active');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('게시글 좋아요 처리 오류:', err);
+                    alert('좋아요 처리 실패!');
+                });
+        });
+    });
+}

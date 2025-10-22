@@ -5,6 +5,7 @@ require('dotenv').config(); // 환경 변수 로드 (.env 파일)
 const path = require('path'); // 파일 경로 처리
 const express = require('express'); // 웹 서버 프레임워크
 const fetch = require('node-fetch'); // HTTP 요청 (Gemini API 호출용)
+const bcrypt = require('bcrypt'); // 비밀번호 암호화
 const pool = require('./db.js'); // MySQL 데이터베이스 연결 풀
 
 // ========================================================
@@ -31,31 +32,43 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 // ========================================================
-// 🔑 로그인 API
+// 🔑 로그인 API (bcrypt 암호화 적용)
 // ========================================================
 // POST /api/login - 사용자 인증 및 세션 생성
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body; // 요청에서 아이디/비밀번호 추출
     
-    // 데이터베이스에서 사용자 조회
-    pool.query('SELECT * FROM users WHERE username = ? AND password = ?', 
-        [username, password], 
-        (err, results) => {
-            if (err) return res.status(500).json({ error: err.message });
-            
-            // 사용자가 없으면 401 에러 반환
-            if (results.length === 0) {
-                return res.status(401).json({ error: '아이디 또는 비밀번호가 잘못되었습니다.' });
+    try {
+        // 데이터베이스에서 사용자 조회 (username만으로 조회)
+        pool.query('SELECT * FROM users WHERE username = ?', 
+            [username], 
+            async (err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                // 사용자가 없으면 401 에러 반환
+                if (results.length === 0) {
+                    return res.status(401).json({ error: '아이디 또는 비밀번호가 잘못되었습니다.' });
+                }
+                
+                const user = results[0];
+                
+                // 비밀번호 검증 (bcrypt 사용)
+                const isPasswordValid = await bcrypt.compare(password, user.password);
+                
+                if (!isPasswordValid) {
+                    return res.status(401).json({ error: '아이디 또는 비밀번호가 잘못되었습니다.' });
+                }
+                
+                // 로그인 성공 시 세션에 사용자 정보 저장
+                req.session.userId = user.id; // 사용자 ID 저장
+                req.session.username = user.username; // 사용자명 저장
+                
+                res.json({ success: true, user: { id: user.id, username: user.username } });
             }
-            
-            // 로그인 성공 시 세션에 사용자 정보 저장
-            const user = results[0];
-            req.session.userId = user.id; // 사용자 ID 저장
-            req.session.username = user.username; // 사용자명 저장
-            
-            res.json({ success: true, user: { id: user.id, username: user.username } });
-        }
-    );
+        );
+    } catch (error) {
+        res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    }
 });
 
 // ========================================================
@@ -69,8 +82,10 @@ app.post('/api/logout', (req, res) => {
     });
 });
 
-// 회원가입 API (POST /api/register)
-app.post('/api/register', (req, res) => {
+// ========================================================
+// 📝 회원가입 API (bcrypt 암호화 적용)
+// ========================================================
+app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
     
     // 입력 검증
@@ -86,30 +101,37 @@ app.post('/api/register', (req, res) => {
         return res.status(400).json({ error: '비밀번호는 최소 4자 이상이어야 합니다.' });
     }
     
-    // 중복 체크
-    pool.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        
-        if (results.length > 0) {
-            return res.status(409).json({ error: '이미 사용 중인 아이디입니다.' });
-        }
-        
-        // 회원 등록
-        const sql = 'INSERT INTO users (username, password, created_at) VALUES (?, ?, NOW())';
-        pool.query(sql, [username, password], (err, result) => {
+    try {
+        // 중복 체크
+        pool.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
             
-            res.json({ 
-                success: true, 
-                message: '회원가입이 완료되었습니다.',
-                userId: result.insertId 
+            if (results.length > 0) {
+                return res.status(409).json({ error: '이미 사용 중인 아이디입니다.' });
+            }
+            
+            // 비밀번호 해시화 (bcrypt, saltRounds=10)
+            const hashedPassword = await bcrypt.hash(password, 10);
+            
+            // 회원 등록
+            const sql = 'INSERT INTO users (username, password, created_at) VALUES (?, ?, NOW())';
+            pool.query(sql, [username, hashedPassword], (err, result) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                
+                res.json({ 
+                    success: true, 
+                    message: '회원가입이 완료되었습니다.',
+                    userId: result.insertId 
+                });
             });
         });
-    });
+    } catch (error) {
+        res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    }
 });
 
 
@@ -399,8 +421,12 @@ app.get('/api/search/posts', (req, res) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+// ========================================================
+// 🚀 서버 시작 (Railway 배포를 위한 동적 PORT 설정)
+// ========================================================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 
@@ -426,4 +452,272 @@ app.delete('/api/comments/:id', (req, res) => {
           res.json({ success: true });
       });
    });
+});
+
+// ========================================================
+// 👍👎 리뷰 좋아요/싫어요 API
+// ========================================================
+
+// POST /api/reviews/:id/like - 리뷰 좋아요/싫어요 토글
+app.post('/api/reviews/:id/like', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
+
+    const reviewId = req.params.id;
+    const userId = req.session.userId;
+    const { like_type } = req.body; // 'like' 또는 'dislike' (언더스코어로 변경)
+
+    if (!['like', 'dislike'].includes(like_type)) {
+        return res.status(400).json({ error: '잘못된 요청입니다.' });
+    }
+
+    // 기존 좋아요/싫어요 확인
+    pool.query('SELECT * FROM review_likes WHERE review_id = ? AND user_id = ?', 
+        [reviewId, userId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            if (results.length > 0) {
+                const existingLike = results[0];
+
+                // 같은 타입이면 취소 (삭제)
+                if (existingLike.like_type === like_type) {
+                    pool.query('DELETE FROM review_likes WHERE id = ?', [existingLike.id], (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        
+                        // 카운트 감소
+                        const column = like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                        pool.query(`UPDATE reviews SET ${column} = ${column} - 1 WHERE id = ?`, [reviewId], (err) => {
+                            if (err) return res.status(500).json({ error: err.message });
+                            
+                            // 최신 카운트 조회
+                            pool.query('SELECT likes_count, dislikes_count FROM reviews WHERE id = ?', [reviewId], (err, rows) => {
+                                if (err) return res.status(500).json({ error: err.message });
+                                res.json({ 
+                                    success: true, 
+                                    action: 'removed',
+                                    likes_count: rows[0].likes_count,
+                                    dislikes_count: rows[0].dislikes_count
+                                });
+                            });
+                        });
+                    });
+                } else {
+                    // 다른 타입이면 변경 (like ↔ dislike)
+                    pool.query('UPDATE review_likes SET like_type = ? WHERE id = ?', 
+                        [like_type, existingLike.id], 
+                        (err) => {
+                            if (err) return res.status(500).json({ error: err.message });
+
+                            // 기존 카운트 감소, 새 카운트 증가
+                            const oldColumn = existingLike.like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                            const newColumn = like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                            
+                            pool.query(
+                                `UPDATE reviews SET ${oldColumn} = ${oldColumn} - 1, ${newColumn} = ${newColumn} + 1 WHERE id = ?`, 
+                                [reviewId], 
+                                (err) => {
+                                    if (err) return res.status(500).json({ error: err.message });
+                                    
+                                    // 최신 카운트 조회
+                                    pool.query('SELECT likes_count, dislikes_count FROM reviews WHERE id = ?', [reviewId], (err, rows) => {
+                                        if (err) return res.status(500).json({ error: err.message });
+                                        res.json({ 
+                                            success: true, 
+                                            action: 'changed',
+                                            likes_count: rows[0].likes_count,
+                                            dislikes_count: rows[0].dislikes_count
+                                        });
+                                    });
+                                }
+                            );
+                        }
+                    );
+                }
+            } else {
+                // 새로 추가
+                pool.query('INSERT INTO review_likes (review_id, user_id, like_type) VALUES (?, ?, ?)', 
+                    [reviewId, userId, like_type], 
+                    (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+
+                        // 카운트 증가
+                        const column = like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                        pool.query(`UPDATE reviews SET ${column} = ${column} + 1 WHERE id = ?`, [reviewId], (err) => {
+                            if (err) return res.status(500).json({ error: err.message });
+                            
+                            // 최신 카운트 조회
+                            pool.query('SELECT likes_count, dislikes_count FROM reviews WHERE id = ?', [reviewId], (err, rows) => {
+                                if (err) return res.status(500).json({ error: err.message });
+                                res.json({ 
+                                    success: true, 
+                                    action: 'added',
+                                    likes_count: rows[0].likes_count,
+                                    dislikes_count: rows[0].dislikes_count
+                                });
+                            });
+                        });
+                    }
+                );
+            }
+        }
+    );
+});
+
+// GET /api/reviews/:id/like-status - 현재 사용자의 좋아요/싫어요 상태 조회
+app.get('/api/reviews/:id/like-status', (req, res) => {
+    if (!req.session.userId) {
+        return res.json({ likeStatus: null });
+    }
+
+    const reviewId = req.params.id;
+    const userId = req.session.userId;
+
+    pool.query('SELECT like_type FROM review_likes WHERE review_id = ? AND user_id = ?', 
+        [reviewId, userId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            if (results.length > 0) {
+                res.json({ likeStatus: results[0].like_type });
+            } else {
+                res.json({ likeStatus: null });
+            }
+        }
+    );
+});
+
+// ========================================================
+// 👍👎 게시글 좋아요/싫어요 API
+// ========================================================
+
+// POST /api/posts/:id/like - 게시글 좋아요/싫어요 토글
+app.post('/api/posts/:id/like', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: '로그인이 필요합니다.' });
+    }
+
+    const postId = req.params.id;
+    const userId = req.session.userId;
+    const { like_type } = req.body; // 'like' 또는 'dislike' (언더스코어로 변경)
+
+    if (!['like', 'dislike'].includes(like_type)) {
+        return res.status(400).json({ error: '잘못된 요청입니다.' });
+    }
+
+    // 기존 좋아요/싫어요 확인
+    pool.query('SELECT * FROM post_likes WHERE post_id = ? AND user_id = ?', 
+        [postId, userId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            if (results.length > 0) {
+                const existingLike = results[0];
+
+                // 같은 타입이면 취소 (삭제)
+                if (existingLike.like_type === like_type) {
+                    pool.query('DELETE FROM post_likes WHERE id = ?', [existingLike.id], (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        
+                        // 카운트 감소
+                        const column = like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                        pool.query(`UPDATE posts SET ${column} = ${column} - 1 WHERE id = ?`, [postId], (err) => {
+                            if (err) return res.status(500).json({ error: err.message });
+                            
+                            // 최신 카운트 조회
+                            pool.query('SELECT likes_count, dislikes_count FROM posts WHERE id = ?', [postId], (err, rows) => {
+                                if (err) return res.status(500).json({ error: err.message });
+                                res.json({ 
+                                    success: true, 
+                                    action: 'removed',
+                                    likes_count: rows[0].likes_count,
+                                    dislikes_count: rows[0].dislikes_count
+                                });
+                            });
+                        });
+                    });
+                } else {
+                    // 다른 타입이면 변경
+                    pool.query('UPDATE post_likes SET like_type = ? WHERE id = ?', 
+                        [like_type, existingLike.id], 
+                        (err) => {
+                            if (err) return res.status(500).json({ error: err.message });
+
+                            // 기존 카운트 감소, 새 카운트 증가
+                            const oldColumn = existingLike.like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                            const newColumn = like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                            
+                            pool.query(
+                                `UPDATE posts SET ${oldColumn} = ${oldColumn} - 1, ${newColumn} = ${newColumn} + 1 WHERE id = ?`, 
+                                [postId], 
+                                (err) => {
+                                    if (err) return res.status(500).json({ error: err.message });
+                                    
+                                    // 최신 카운트 조회
+                                    pool.query('SELECT likes_count, dislikes_count FROM posts WHERE id = ?', [postId], (err, rows) => {
+                                        if (err) return res.status(500).json({ error: err.message });
+                                        res.json({ 
+                                            success: true, 
+                                            action: 'changed',
+                                            likes_count: rows[0].likes_count,
+                                            dislikes_count: rows[0].dislikes_count
+                                        });
+                                    });
+                                }
+                            );
+                        }
+                    );
+                }
+            } else {
+                // 새로 추가
+                pool.query('INSERT INTO post_likes (post_id, user_id, like_type) VALUES (?, ?, ?)', 
+                    [postId, userId, like_type], 
+                    (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+
+                        // 카운트 증가
+                        const column = like_type === 'like' ? 'likes_count' : 'dislikes_count';
+                        pool.query(`UPDATE posts SET ${column} = ${column} + 1 WHERE id = ?`, [postId], (err) => {
+                            if (err) return res.status(500).json({ error: err.message });
+                            
+                            // 최신 카운트 조회
+                            pool.query('SELECT likes_count, dislikes_count FROM posts WHERE id = ?', [postId], (err, rows) => {
+                                if (err) return res.status(500).json({ error: err.message });
+                                res.json({ 
+                                    success: true, 
+                                    action: 'added',
+                                    likes_count: rows[0].likes_count,
+                                    dislikes_count: rows[0].dislikes_count
+                                });
+                            });
+                        });
+                    }
+                );
+            }
+        }
+    );
+});
+
+// GET /api/posts/:id/like-status - 현재 사용자의 좋아요/싫어요 상태 조회
+app.get('/api/posts/:id/like-status', (req, res) => {
+    if (!req.session.userId) {
+        return res.json({ likeStatus: null });
+    }
+
+    const postId = req.params.id;
+    const userId = req.session.userId;
+
+    pool.query('SELECT like_type FROM post_likes WHERE post_id = ? AND user_id = ?', 
+        [postId, userId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            if (results.length > 0) {
+                res.json({ likeStatus: results[0].like_type });
+            } else {
+                res.json({ likeStatus: null });
+            }
+        }
+    );
 });

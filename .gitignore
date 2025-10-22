@@ -4,14 +4,16 @@
 # Environment variables
 .env
 
-# Optional
+# Optional development files
 .vscode/
-
-
 check_reviews.js
 show_db_data.js
 dkew.md
 mysql파일에 필수로 넣어야 할 것.txt
-package-lock.json
-package.json
-crawler.py        
+crawler.py
+clear_all_user_data.sql
+database_update.sql
+migrate_passwords.js
+SETUP_GUIDE.md
+
+# 중요: package.json과 package-lock.json은 배포를 위해 포함되어야 함!

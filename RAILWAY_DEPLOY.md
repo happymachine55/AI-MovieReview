@@ -3,6 +3,7 @@
 ## 📋 배포 전 체크리스트
 
 ### ✅ 완료된 설정
+
 - [x] `package.json`에 start 스크립트 추가
 - [x] 동적 PORT 설정 (`process.env.PORT`)
 - [x] `railway.json` 설정 파일 생성
@@ -14,6 +15,7 @@
 Railway 대시보드에서 다음 환경 변수를 **반드시** 설정해야 합니다:
 
 ### 1. 데이터베이스 설정
+
 ```
 DB_HOST=<Railway MySQL 호스트 주소>
 DB_USER=<데이터베이스 사용자명>
@@ -22,11 +24,13 @@ DB_NAME=gallery_movie
 ```
 
 ### 2. API 키 설정
+
 ```
-GEMINI_API_KEY=AIzaSyA7F_lOhtM7DDYxATLrcc9A2AwvNv7vpUQ
+
 ```
 
 ### 3. 세션 보안 키 (선택)
+
 ```
 SESSION_SECRET=your-production-secret-key-change-this
 ```
@@ -49,6 +53,7 @@ SESSION_SECRET=your-production-secret-key-change-this
 ### 방법 2: 외부 MySQL 사용 (PlanetScale, AWS RDS 등)
 
 외부 데이터베이스를 사용하는 경우:
+
 1. 해당 서비스에서 연결 정보 확인
 2. Railway 환경 변수에 입력
 
@@ -207,20 +212,25 @@ git push origin main
 ## 🔍 배포 후 확인 사항
 
 ### 1. 배포 성공 확인
+
 - Railway 대시보드에서 **"Deployments"** 탭 확인
 - 상태가 **"Success"**인지 확인
 
 ### 2. 로그 확인
+
 ```
 Server running on port XXXX
 ```
+
 메시지가 있는지 확인
 
 ### 3. 웹사이트 접속
+
 - Railway에서 제공하는 URL로 접속
 - 예: `https://ai-moviereview-production.up.railway.app`
 
 ### 4. 기능 테스트
+
 - [ ] 회원가입 작동
 - [ ] 로그인 작동
 - [ ] 영화 목록 표시
@@ -233,7 +243,8 @@ Server running on port XXXX
 ## ⚠️ 주의사항
 
 ### 1. bcrypt 빌드 오류 발생 시
-Railway는 자동으로 네이티브 모듈을 빌드합니다. 
+
+Railway는 자동으로 네이티브 모듈을 빌드합니다.
 만약 오류가 발생하면:
 
 ```json
@@ -245,6 +256,7 @@ Railway는 자동으로 네이티브 모듈을 빌드합니다.
 ```
 
 ### 2. 세션 스토어 설정 (선택)
+
 프로덕션 환경에서는 메모리 기반 세션 대신 Redis 사용 권장:
 
 ```bash
@@ -252,15 +264,18 @@ railway add redis
 ```
 
 ### 3. CORS 설정 (필요시)
+
 프론트엔드를 별도 도메인에서 호스팅하는 경우:
 
 ```javascript
 // app.js에 추가
-const cors = require('cors');
-app.use(cors({
-  origin: 'https://your-frontend-domain.com',
-  credentials: true
-}));
+const cors = require("cors");
+app.use(
+  cors({
+    origin: "https://your-frontend-domain.com",
+    credentials: true,
+  })
+);
 ```
 
 ---
@@ -268,18 +283,23 @@ app.use(cors({
 ## 🐛 트러블슈팅
 
 ### "Error: creating build plan with Railpack" 오류
+
 → **해결**: `railway.json`과 `package.json` 확인 (이미 수정됨)
 
 ### 데이터베이스 연결 오류
+
 → **확인 사항**:
+
 - 환경 변수가 올바르게 설정되었는지
 - MySQL 서비스가 실행 중인지
 - 방화벽 설정 확인
 
 ### 포트 오류
+
 → **해결**: `process.env.PORT` 사용 (이미 수정됨)
 
 ### bcrypt 설치 오류
+
 → **해결**: Node.js 18 이상 사용 (package.json에 명시됨)
 
 ---
@@ -293,10 +313,10 @@ Railway는 자동으로 HTTPS를 제공하므로 모바일에서도 안전하게
 ## 💰 비용 관련
 
 - **Railway 무료 티어**: $5 크레딧/월 제공
-- **예상 사용량**: 
+- **예상 사용량**:
   - 웹 서비스: ~$3/월
   - MySQL: ~$2/월
-  
+
 **총 예상 비용**: 무료 크레딧 내에서 운영 가능!
 
 ---
@@ -315,6 +335,7 @@ Railway는 자동으로 HTTPS를 제공하므로 모바일에서도 안전하게
 
 ```markdown
 ## 🌐 Live Demo
+
 https://your-app-name.up.railway.app
 ```
 

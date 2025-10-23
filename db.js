@@ -1,30 +1,78 @@
 // ========================================================
-// 📦 MySQL 데이터베이스 연결 설정
+// 📦 데이터베이스 연결 설정 (MySQL & PostgreSQL 지원)
 // ========================================================
 
-// .env 파일에서 환경 변수 로드 (DB 접속 정보)
 require('dotenv').config();
 
-// mysql2 모듈 불러오기 (MySQL 연결용)
-const mysql = require('mysql2');
+// DATABASE_URL이 있으면 PostgreSQL, 없으면 MySQL 사용
+const usePostgres = !!process.env.DATABASE_URL;
+
+let pool;
+
+if (usePostgres) {
+  // ========================================================
+  // � PostgreSQL 연결 (Render 배포용)
+  // ========================================================
+  const { Pool } = require('pg');
+  
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
+
+  // PostgreSQL용 쿼리 래퍼 (MySQL 문법과 호환)
+  const originalQuery = pool.query.bind(pool);
+  pool.query = function(sql, params, callback) {
+    // MySQL의 ? placeholder를 PostgreSQL의 $1, $2로 변환
+    let pgSql = sql;
+    let pgParams = params;
+    
+    if (typeof params === 'function') {
+      callback = params;
+      pgParams = [];
+    }
+    
+    if (Array.isArray(pgParams)) {
+      let index = 0;
+      pgSql = sql.replace(/\?/g, () => `$${++index}`);
+    }
+
+    return originalQuery(pgSql, pgParams, (err, result) => {
+      if (callback) {
+        // MySQL 형식으로 결과 반환
+        if (err) {
+          callback(err, null);
+        } else {
+          // PostgreSQL의 rows를 MySQL 형식으로 변환
+          callback(null, result.rows || []);
+        }
+      }
+    });
+  };
+
+  console.log('✅ PostgreSQL 연결 준비 완료');
+
+} else {
+  // ========================================================
+  // 🐬 MySQL 연결 (로컬 개발용)
+  // ========================================================
+  const mysql = require('mysql2');
+  
+  pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+
+  console.log('✅ MySQL 연결 준비 완료');
+}
 
 // ========================================================
-// 🔌 MySQL 연결 풀(Pool) 생성
-// ========================================================
-// Connection Pool: 여러 클라이언트가 동시에 DB에 접근할 수 있도록
-// 미리 여러 개의 연결을 만들어두고 재사용하는 방식
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,           // MySQL 서버 주소 (예: localhost)
-  user: process.env.DB_USER,           // MySQL 사용자 이름 (예: root)
-  password: process.env.DB_PASSWORD,   // MySQL 비밀번호
-  database: process.env.DB_NAME,       // 사용할 데이터베이스 이름 (예: gallery_movie)
-  waitForConnections: true,            // 연결이 꽉 찼을 때 대기할지 여부
-  connectionLimit: 10,                 // 최대 동시 연결 개수 (10개)
-  queueLimit: 0                        // 대기열 제한 (0 = 무제한)
-});
-
-// ========================================================
-// 📤 연결 풀 내보내기 (app.js에서 사용)
+// 📤 연결 풀 내보내기
 // ========================================================
 module.exports = pool;
 

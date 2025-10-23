@@ -1,0 +1,22 @@
+services:
+  # Web Service
+  - type: web
+    name: ai-moviereview
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: gallery_movie
+      - key: GEMINI_API_KEY
+        sync: false

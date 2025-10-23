@@ -36,8 +36,11 @@
 - **Version** : Node.js v22.14.0
 - **IDE** : VS Code
 - **Framework** : Express.js (Node.js)
-- **Database** : MySQL 8.0.41
+- **Database** : 
+  - 로컬 개발: MySQL 8.0.41
+  - 프로덕션: PostgreSQL 15 (Render)
 - **AI API** : Google Gemini 2.0-flash
+- **배포** : Render (Free Plan)
 
 ---
 
@@ -60,13 +63,22 @@
 
 ### Database
 
-- **MySQL** : 관계형 데이터베이스
-- **테이블 구조**:
+- **MySQL / PostgreSQL** : 관계형 데이터베이스 (자동 전환)
+  - 로컬 개발: MySQL 8.0.41
+  - Render 배포: PostgreSQL 15
+- **테이블 구조** (6개):
   - `users` : 사용자 정보
+  - `reviews` : 영화 리뷰
   - `posts` : 게시글
   - `comments` : 댓글
-  - `reviews` : 영화 리뷰
-  - `movies` : 영화 정보
+  - `review_likes` : 리뷰 좋아요/싫어요
+  - `post_likes` : 게시글 좋아요/싫어요
+
+### Deployment
+
+- **Render** : 무료 클라우드 호스팅
+- **CI/CD** : GitHub 푸시 시 자동 배포
+- **SSL** : 자동 HTTPS 적용
 
 ---
 
@@ -110,16 +122,27 @@
 
 ```
 movie_exercise2.12/
-├── frontend/               # 프론트엔드 파일
-│   ├── index.html         # 메인 HTML
-│   ├── style.css          # 스타일시트
-│   ├── script.js          # 클라이언트 로직
-│   └── movies.js          # 영화 데이터
-├── app.js                 # Express 서버 (백엔드 API)
-├── db.js                  # MySQL 연결 설정
-├── .env                   # 환경 변수 (DB 정보, API 키)
-├── package.json           # 프로젝트 의존성
-└── README.md              # 프로젝트 문서
+├── frontend/                      # 프론트엔드 파일
+│   ├── index.html                # 메인 HTML
+│   ├── style.css                 # 스타일시트
+│   ├── script.js                 # 클라이언트 로직
+│   └── movies.js                 # 영화 데이터
+├── app.js                        # Express 서버 (백엔드 API)
+├── db.js                         # 데이터베이스 연결 (MySQL/PostgreSQL 자동 전환)
+├── create_tables.js              # PostgreSQL 테이블 생성 스크립트
+├── migrate_to_postgres.js        # MySQL → PostgreSQL 데이터 마이그레이션
+├── sync_mysql_to_postgres.js     # MySQL → PostgreSQL 완전 동기화
+├── sync_postgres_to_mysql.js     # PostgreSQL → MySQL 역방향 동기화
+├── realtime_sync.js              # MySQL → PostgreSQL 실시간 동기화 (5초)
+├── .env                          # 환경 변수 (DB 정보, API 키)
+├── .env.example                  # 환경 변수 예시
+├── package.json                  # 프로젝트 의존성
+├── README.md                     # 프로젝트 문서
+├── DEPLOYMENT_GUIDE.md           # 전체 배포 가이드
+├── RENDER_DEPLOY.md              # Render 플랫폼 가이드
+├── DATA_SYNC_GUIDE.md            # 데이터 동기화 가이드
+├── BIDIRECTIONAL_SYNC_GUIDE.md   # 양방향 동기화 가이드
+└── REALTIME_SYNC_GUIDE.md        # 실시간 동기화 가이드
 ```
 
 ---
@@ -144,12 +167,20 @@ npm install
 `.env` 파일 생성:
 
 ```env
+# MySQL (로컬 개발)
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=gallery_movie
+
+# Google Gemini API 키
 GEMINI_API_KEY=your_gemini_api_key
+
+# PostgreSQL (Render 배포 - 선택사항)
+POSTGRES_URL=postgresql://user:password@host.render.com/database
 ```
+
+**참고**: `DATABASE_URL` 환경 변수가 있으면 PostgreSQL 사용, 없으면 MySQL 사용 (자동 전환)
 
 ### 4. MySQL 데이터베이스 설정
 
@@ -291,119 +322,105 @@ This project is licensed under the MIT License.
 
 ---
 
-## 🚀 배포하기 (Render)
+## 🚀 배포 및 동기화
 
-### 🎯 완료된 배포 현황
+### 🎯 배포 현황
 
 ✅ **프로덕션 URL**: [https://ai-moviereview.onrender.com](https://ai-moviereview.onrender.com)  
 ✅ **배포 플랫폼**: Render (Free Plan)  
-✅ **데이터베이스**: PostgreSQL 15 (1GB)  
-✅ **자동 배포**: GitHub main 브랜치 푸시 시 자동 재배포
+✅ **데이터베이스**: PostgreSQL 15 (1GB) - Singapore Region  
+✅ **자동 배포**: GitHub main 브랜치 푸시 시 자동 재배포  
+✅ **양방향 동기화**: MySQL ⇄ PostgreSQL 실시간 동기화 지원
 
 ---
 
-### 📚 배포 전체 프로세스
-
-우리가 진행한 배포 과정을 단계별로 정리했습니다.
+### 📚 Render 배포 프로세스
 
 #### 1️⃣ Render PostgreSQL 생성
 
-**목적**: 무료 클라우드 데이터베이스 생성
+**Render 대시보드 설정:**
 
 ```bash
-# Render 대시보드에서 진행
-1. https://dashboard.render.com 접속
-2. New + → PostgreSQL
-3. Name: moviereview-db
-   Database: gallery_movie
-   Region: Singapore
-   Version: 15
-   Plan: Free
+1. https://dashboard.render.com 접속 및 로그인
+2. New + → PostgreSQL 선택
+3. 설정:
+   - Name: gallery_movie_l9rv
+   - Database: gallery_movie_l9rv
+   - Region: Singapore (낮은 지연시간)
+   - Version: 15
+   - Plan: Free
 4. Create Database 클릭
-5. Internal Database URL 복사
+5. Info 탭에서 Internal Database URL 복사
 ```
 
-**결과**: `postgresql://user:password@dpg-xxxxx.singapore-postgres.render.com/gallery_movie`
+**결과**: `postgresql://gallery_movie_l9rv_user:비밀번호@dpg-xxxxx.singapore-postgres.render.com/gallery_movie_l9rv`
 
 ---
 
 #### 2️⃣ PostgreSQL 테이블 생성
 
-**목적**: 로컬 MySQL 테이블 구조를 PostgreSQL에 복제
-
-**방법**: Node.js 스크립트 사용 (PostgreSQL 설치 불필요!)
+**로컬에서 Node.js 스크립트로 실행** (PostgreSQL 설치 불필요!)
 
 ```bash
-# 1. .env 파일에 PostgreSQL URL 추가
-POSTGRES_URL=postgresql://user:password@dpg-xxxxx.singapore-postgres.render.com/gallery_movie
+# 1. .env 파일에 POSTGRES_URL 추가
+POSTGRES_URL=postgresql://gallery_movie_l9rv_user:비밀번호@호스트/gallery_movie_l9rv
 
 # 2. 테이블 생성 스크립트 실행
 node create_tables.js
 ```
 
 **생성되는 테이블 (6개)**:
+- `users` - 사용자 정보 (id, username, password, created_at)
+- `reviews` - 영화 리뷰 (id, user_id, movie_title, rating, content, recommend, likes/dislikes)
+- `posts` - 게시글 (id, user_id, title, content, views, recommend, likes/dislikes)
+- `comments` - 댓글 (id, post_id, user_id, content, created_at)
+- `review_likes` - 리뷰 좋아요/싫어요 (id, review_id, user_id, like_type)
+- `post_likes` - 게시글 좋아요/싫어요 (id, post_id, user_id, like_type)
 
-- `users` - 사용자 정보
-- `reviews` - 영화 리뷰
-- `posts` - 게시글
-- `comments` - 댓글
-- `review_likes` - 리뷰 좋아요/싫어요
-- `post_likes` - 게시글 좋아요/싫어요
-
-**특징**:
-
-- ✅ MySQL의 AUTO_INCREMENT → PostgreSQL의 SERIAL 자동 변환
-- ✅ 외래 키(Foreign Key) 관계 유지
-- ✅ 인덱스 자동 생성으로 성능 최적화
+**자동 변환 기능**:
+- ✅ MySQL AUTO_INCREMENT → PostgreSQL SERIAL
+- ✅ DATETIME → TIMESTAMP
+- ✅ 외래 키 제약조건 유지
+- ✅ 인덱스 자동 생성
 
 ---
 
-#### 3️⃣ MySQL → PostgreSQL 데이터 마이그레이션
+#### 3️⃣ 초기 데이터 마이그레이션
 
-**목적**: 로컬 개발 데이터를 프로덕션 DB로 이전
-
-**방법 A: 완전 동기화 (테이블 구조 + 데이터)**
+**로컬 MySQL 데이터를 Render PostgreSQL로 이전:**
 
 ```bash
-node sync_mysql_to_postgres.js
-```
-
-**특징**:
-
-- ✅ MySQL 테이블 구조 자동 분석
-- ✅ PostgreSQL에 테이블 재생성
-- ✅ 데이터 타입 자동 변환 (INT→INTEGER, DATETIME→TIMESTAMP)
-- ✅ 외래 키, 인덱스, 시퀀스 모두 동기화
-
-**방법 B: 데이터만 마이그레이션 (테이블 구조 유지)**
-
-```bash
+# 방법 1: 전체 마이그레이션 (권장)
 node migrate_to_postgres.js
+
+# 실행 결과
+🚀 마이그레이션 시작...
+✅ MySQL 연결 성공
+✅ PostgreSQL 연결 성공
+👥 users: 2개 사용자 마이그레이션 완료
+⭐ reviews: 1개 리뷰 마이그레이션 완료
+📝 posts: 1개 게시글 마이그레이션 완료
+💬 comments: 1개 댓글 마이그레이션 완료
+🎉 마이그레이션 완료!
 ```
 
 **특징**:
-
-- ✅ 기존 테이블 구조 그대로 유지
-- ✅ 데이터만 복사 (TRUNCATE → INSERT)
-- ✅ 빠른 실행 속도
-
-**언제 사용?**
-
-- 로컬에서 테스트 데이터 추가 후 → 프로덕션에 반영
-- 개발 중 새로운 사용자/리뷰/게시글 추가 후 → 배포 서버에 동기화
+- ✅ 모든 테이블 데이터 자동 복사
+- ✅ rating 필드 자동 형변환 (문자열→정수)
+- ✅ 시퀀스(Auto Increment) 자동 리셋
+- ✅ 외래 키 관계 유지
 
 ---
 
-#### 4️⃣ Render Web Service 배포
+#### 4️⃣ Render Web Service 생성 및 배포
 
-**목적**: Node.js 애플리케이션 배포
+**Render 대시보드 설정:**
 
 ```bash
-# Render 대시보드에서 진행
-1. New + → Web Service
-2. Connect GitHub repository: happymachine55/AI-MovieReview
-3. 설정:
-   - Name: ai-moviereview
+1. New + → Web Service 선택
+2. GitHub 저장소 연결: happymachine55/AI-MovieReview
+3. 기본 설정:
+   - Name: AI-MovieReview
    - Region: Singapore
    - Branch: main
    - Runtime: Node
@@ -411,163 +428,291 @@ node migrate_to_postgres.js
    - Start Command: node app.js
    - Plan: Free
 
-4. 환경 변수 설정:
-   DATABASE_URL=<PostgreSQL Internal URL>
-   GEMINI_API_KEY=<your_api_key>
-   NODE_ENV=production
+4. Environment 탭에서 환경 변수 추가:
+   - DATABASE_URL = (PostgreSQL Internal URL 복사 붙여넣기)
+   - GEMINI_API_KEY = (Google AI Studio에서 발급받은 키)
+   - NODE_ENV = production
 
 5. Create Web Service 클릭
 ```
 
-**배포 로그 확인**:
-
+**배포 로그 확인** (Logs 탭):
 ```
+==> Building on host: ...
+==> Downloading cache...
+==> Installing dependencies...
+==> Build successful!
+==> Starting service...
 ✅ PostgreSQL 연결 준비 완료
 Server running on port 10000
+==> Your service is live 🎉
+==> Available at your primary URL https://ai-moviereview.onrender.com
 ```
 
 ---
 
-#### 5️⃣ 자동 배포 설정 (CI/CD)
+#### 5️⃣ CI/CD 자동 배포
 
-**목적**: 코드 수정 시 자동으로 Render에 재배포
-
-**현재 설정**:
+**GitHub 연동으로 자동 배포:**
 
 ```bash
-# GitHub main 브랜치에 푸시하면 자동 재배포
+# 로컬에서 코드 수정 후
 git add .
 git commit -m "feat: Add new feature"
 git push origin main
+
+# Render가 자동으로:
+# 1. GitHub 변경 감지
+# 2. npm install 실행
+# 3. node app.js로 서버 재시작
+# 4. 새 버전 배포 완료 (약 2-3분)
 ```
 
-**Render에서 자동으로**:
-
-1. GitHub 변경 감지
-2. `npm install` 실행
-3. `node app.js`로 서버 재시작
-4. 새 버전 배포 완료 (3~5분 소요)
-
 **주의사항**:
-
-- ⚠️ 코드만 자동 배포됨 (데이터베이스 변경 사항 아님)
-- ⚠️ 테이블 구조 변경 시 → `node create_tables.js` 수동 실행 필요
-- ⚠️ 로컬 데이터 추가 시 → `node sync_mysql_to_postgres.js` 수동 실행 필요
+- ✅ **코드 변경**: 자동 배포됨
+- ⚠️ **환경 변수 변경**: Render 대시보드에서 수동 수정 필요
+- ⚠️ **테이블 구조 변경**: `create_tables.js` 수동 실행 필요
+- ⚠️ **데이터 추가**: 양방향 동기화 스크립트 사용 (아래 참조)
 
 ---
 
-### 🔄 개발 워크플로우
+### 🔄 양방향 실시간 동기화
 
-#### 로컬 개발 → 프로덕션 배포 과정
+**로컬 MySQL**과 **Render PostgreSQL** 간 완전 양방향 동기화 시스템입니다.
 
-```mermaid
-graph LR
-    A[로컬 MySQL] --> B[코드 수정]
-    B --> C[Git Push]
-    C --> D[Render 자동 재배포]
+#### 동기화 구조
 
-    A --> E[데이터 추가]
-    E --> F[sync_mysql_to_postgres.js]
-    F --> G[Render PostgreSQL]
+```
+로컬 MySQL ←――――――――――→ Render PostgreSQL
+     ↓                        ↓
+realtime_sync.js    sync_postgres_to_mysql.js
+  (5초마다)              (10초마다)
 ```
 
-**단계별 설명**:
+#### 정방향 동기화 (MySQL → PostgreSQL)
 
-**1. 코드만 수정한 경우** (파일 변경, 버그 수정 등)
+**목적**: MySQL Workbench에서 작업한 내용을 Render에 자동 반영
 
 ```bash
-# 로컬에서 테스트
+# 실행 방법
+node realtime_sync.js
+
+# 실행 결과
+╔════════════════════════════════════════════════╗
+║  MySQL → PostgreSQL 실시간 동기화 시작         ║
+╚════════════════════════════════════════════════╝
+⏱️  동기화 주기: 5초
+🔗 PostgreSQL: dpg-xxxxx.singapore-postgres.render.com
+🔗 MySQL: localhost/gallery_movie
+💡 종료하려면 Ctrl+C를 누르세요
+
+🔄 동기화 시작...
+📊 users: 1개의 새로운 레코드 발견
+✅ 동기화 완료: 1개 추가/수정, 0개 삭제
+⏰ 다음 동기화: 5초 후
+```
+
+**지원 기능**:
+- ✅ INSERT (추가): 새 데이터 자동 감지 및 추가
+- ✅ DELETE (삭제): 삭제된 데이터 자동 감지 및 삭제
+- ⚠️ UPDATE (수정): 미지원 (created_at 기준 감지)
+
+#### 역방향 동기화 (PostgreSQL → MySQL)
+
+**목적**: Render 사이트에서 사용자가 작성한 내용을 로컬 MySQL에 백업
+
+```bash
+# 실행 방법
+node sync_postgres_to_mysql.js
+
+# 실행 결과
+╔════════════════════════════════════════════════╗
+║  PostgreSQL → MySQL 역방향 동기화 시작         ║
+╚════════════════════════════════════════════════╝
+⏱️  동기화 주기: 10초
+🔗 PostgreSQL: dpg-xxxxx.singapore-postgres.render.com
+🔗 MySQL: localhost/gallery_movie
+
+🔄 역방향 동기화 시작...
+📊 reviews: 2개의 새로운 레코드 발견
+✅ 역방향 동기화 완료: 2개 추가/수정, 0개 삭제
+⏰ 다음 동기화: 10초 후
+```
+
+**사용 시나리오**:
+1. 사용자가 https://ai-moviereview.onrender.com 접속
+2. 로그인 후 영화 리뷰 작성
+3. PostgreSQL에 즉시 저장
+4. 10초 후 → 로컬 MySQL에 자동 백업
+
+#### 백그라운드 실행 (PM2 권장)
+
+```bash
+# PM2 설치
+npm install -g pm2
+
+# 양방향 동기화 시작
+pm2 start realtime_sync.js --name "mysql-to-pg"
+pm2 start sync_postgres_to_mysql.js --name "pg-to-mysql"
+
+# 상태 확인
+pm2 status
+
+# 로그 확인
+pm2 logs
+
+# 중지
+pm2 stop all
+
+# 재시작
+pm2 restart all
+```
+
+#### 동기화 주기 설정
+
+`.env` 파일에 추가:
+
+```properties
+# MySQL → PostgreSQL 주기 (기본: 5000ms = 5초)
+SYNC_INTERVAL=5000
+
+# PostgreSQL → MySQL 주기 (기본: 10000ms = 10초)
+REVERSE_SYNC_INTERVAL=10000
+```
+
+**권장 설정**:
+- 개발 중: 5초/10초 (빠른 피드백)
+- 일반 사용: 10초/15초 (안정적)
+- 저사양 PC: 20초/30초 (부하 감소)
+
+---
+
+### �️ 개발 워크플로우
+
+#### 상황별 작업 흐름
+
+**1. 코드만 수정 (UI, 로직 변경)**
+
+```bash
+# 로컬에서 개발 및 테스트
 node app.js
 
-# GitHub에 푸시
+# GitHub 푸시
 git add .
 git commit -m "fix: Bug fix"
 git push origin main
 
-# Render가 자동으로 재배포 (끝!)
+# Render 자동 재배포 (2-3분)
+# 완료!
 ```
 
-**2. 테이블 구조를 변경한 경우** (새 컬럼 추가, 테이블 추가 등)
+**2. 로컬에서 데이터 추가 (MySQL Workbench)**
 
 ```bash
-# 로컬 MySQL에서 테이블 수정
+# MySQL Workbench에서 데이터 추가
+INSERT INTO reviews (...) VALUES (...);
 
-# Render PostgreSQL에 반영
+# 옵션 A: 실시간 동기화 스크립트 실행 중이면
+# → 5초 후 자동으로 Render PostgreSQL에 반영
+
+# 옵션 B: 수동 동기화
+node migrate_to_postgres.js
+```
+
+**3. Render 사이트에서 사용자가 데이터 추가**
+
+```bash
+# 사용자가 https://ai-moviereview.onrender.com에서 리뷰 작성
+# → PostgreSQL에 즉시 저장
+
+# 역방향 동기화 스크립트 실행 중이면
+# → 10초 후 로컬 MySQL에 자동 백업
+
+# 수동 백업 (필요시)
+# 역방향 동기화는 자동이므로 불필요
+```
+
+**4. 테이블 구조 변경 (컬럼 추가/삭제)**
+
+```bash
+# MySQL Workbench에서 테이블 수정
+ALTER TABLE posts ADD COLUMN new_field VARCHAR(255);
+
+# PostgreSQL에 반영
 node create_tables.js
 
-# 코드 푸시
+# 코드 수정 (필요시)
 git add .
-git commit -m "feat: Add new table"
-git push origin main
-```
-
-**3. 데이터를 추가한 경우** (새 사용자, 리뷰, 게시글 등)
-
-```bash
-# 로컬 MySQL에 데이터 추가
-
-# Render PostgreSQL에 동기화
-node sync_mysql_to_postgres.js
-# 또는
-node migrate_to_postgres.js
-
-# 필요시 코드도 푸시
+git commit -m "feat: Add new field"
 git push origin main
 ```
 
 ---
 
-### 🛠️ 유용한 스크립트
+### � 주요 스크립트
 
-우리가 만든 배포 자동화 스크립트들:
-
-| 스크립트                    | 기능                             | 사용 시기                        |
-| --------------------------- | -------------------------------- | -------------------------------- |
-| `create_tables.js`          | PostgreSQL 테이블 생성           | 최초 배포, 테이블 구조 변경 시   |
-| `sync_mysql_to_postgres.js` | 테이블 구조 + 데이터 완전 동기화 | 테이블 스키마 변경 + 데이터 이전 |
-| `migrate_to_postgres.js`    | 데이터만 마이그레이션            | 데이터만 추가/수정된 경우        |
+| 스크립트                       | 기능                                 | 사용 시기                    |
+| ------------------------------ | ------------------------------------ | ---------------------------- |
+| `create_tables.js`             | PostgreSQL 테이블 생성               | 최초 배포, 테이블 구조 변경  |
+| `migrate_to_postgres.js`       | MySQL → PostgreSQL 데이터 마이그레이션 | 초기 데이터 이전             |
+| `realtime_sync.js`             | MySQL → PostgreSQL 실시간 동기화 (정방향) | 로컬 개발 중 데이터 자동 반영 |
+| `sync_postgres_to_mysql.js`    | PostgreSQL → MySQL 실시간 동기화 (역방향) | Render 데이터 로컬 백업       |
+| `fix_mysql_posts.js`           | MySQL 테이블 구조 자동 수정          | 컬럼 누락 오류 발생 시       |
 
 **실행 방법**:
 
 ```bash
-# .env 파일에 POSTGRES_URL 설정 후
+# .env 파일에 POSTGRES_URL 설정 필수
 node <스크립트명>
 ```
 
 ---
 
-### 📖 상세 가이드 문서
+### 📖 상세 문서
 
-- 📘 [빠른 배포 가이드](QUICK_DEPLOY.md) - 3단계로 끝내기 (5분)
-- 📗 [전체 배포 가이드](DEPLOYMENT_GUIDE.md) - 상세 설명 (15-20분)
-- 📙 [Render 플랫폼 가이드](RENDER_DEPLOY.md) - Render 사용법 (20-30분)
-- 📕 [데이터 동기화 가이드](DATA_SYNC_GUIDE.md) - MySQL ↔ PostgreSQL (10-15분)
+- 📘 [양방향 동기화 가이드](BIDIRECTIONAL_SYNC_GUIDE.md) - 완전 양방향 실시간 동기화
+- 📗 [실시간 동기화 가이드](REALTIME_SYNC_GUIDE.md) - MySQL → PostgreSQL 자동화
+- 📙 [배포 가이드](DEPLOYMENT_GUIDE.md) - Render 배포 상세 설명
+- 📕 [데이터 동기화 가이드](DATA_SYNC_GUIDE.md) - 수동 마이그레이션 방법
 
 ---
 
 ### ⚙️ 환경 비교
 
-| 항목             | 로컬 개발 환경  | Render 프로덕션 환경        |
-| ---------------- | --------------- | --------------------------- |
-| **데이터베이스** | MySQL 8.0.41    | PostgreSQL 15               |
-| **포트**         | 3000            | 10000 (자동 할당)           |
-| **환경 변수**    | `.env` 파일     | Render 대시보드 설정        |
-| **데이터 관리**  | MySQL Workbench | Node.js 스크립트            |
-| **배포 방법**    | `node app.js`   | Git push → 자동 배포        |
-| **URL**          | localhost:3000  | ai-moviereview.onrender.com |
-| **SSL/HTTPS**    | ❌              | ✅ 자동 적용                |
-| **슬립 모드**    | ❌              | ✅ 15분 미사용 시           |
+| 항목               | 로컬 개발 환경         | Render 프로덕션 환경                |
+| ------------------ | ---------------------- | ----------------------------------- |
+| **데이터베이스**   | MySQL 8.0.41           | PostgreSQL 15                       |
+| **포트**           | 3000                   | 10000 (자동 할당)                   |
+| **환경 변수**      | `.env` 파일            | Render 대시보드 설정                |
+| **데이터 관리**    | MySQL Workbench        | Node.js 스크립트 + 양방향 동기화    |
+| **배포 방법**      | `node app.js`          | Git push → 자동 배포                |
+| **URL**            | localhost:3000         | ai-moviereview.onrender.com         |
+| **SSL/HTTPS**      | ❌                     | ✅ 자동 적용                        |
+| **슬립 모드**      | ❌                     | ✅ 15분 미사용 시                   |
+| **데이터 백업**    | 수동                   | ✅ 역방향 동기화로 자동 백업        |
 
 **자동 DB 전환 로직** (`db.js`):
 
 ```javascript
-// DATABASE_URL 환경 변수 존재 여부로 자동 판단
+// DATABASE_URL 환경 변수로 자동 판단
 const usePostgres = !!process.env.DATABASE_URL;
 
 if (usePostgres) {
-  // Render 배포 환경 → PostgreSQL 사용
+  // PostgreSQL 사용 (Render 프로덕션)
+  const { Pool } = require('pg');
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
 } else {
-  // 로컬 개발 환경 → MySQL 사용
+  // MySQL 사용 (로컬 개발)
+  const mysql = require('mysql2');
+  pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+  });
 }
 ```
 
@@ -664,7 +809,126 @@ Server running on port 10000
 
 ---
 
-- 배포: Render 환경 변수 `DATABASE_URL` 있음 → PostgreSQL 사용
+## 🔄 MySQL ↔ PostgreSQL 양방향 동기화
+
+개발 환경(MySQL)과 프로덕션 환경(PostgreSQL) 간의 데이터를 자동으로 동기화할 수 있습니다.
+
+### 동기화 방향
+
+#### 1. MySQL → PostgreSQL (정방향)
+**스크립트**: `realtime_sync.js`  
+**용도**: 로컬 개발 데이터를 Render에 반영
+
+```bash
+node realtime_sync.js
+```
+
+**기능**:
+- ✅ 5초마다 MySQL 변경사항 감지
+- ✅ 새로 추가된 데이터 자동 동기화
+- ✅ 삭제된 데이터 자동 제거
+
+**예시**:
+```sql
+-- MySQL Workbench에서 실행
+INSERT INTO reviews (user_id, movie_title, rating, content, recommend, created_at)
+VALUES (5, '새 영화', 9, '정말 재미있어요!', '추천함', NOW());
+```
+→ 5초 후 Render PostgreSQL에 자동 추가 → Render 사이트에서 확인 가능
+
+#### 2. PostgreSQL → MySQL (역방향)
+**스크립트**: `sync_postgres_to_mysql.js`  
+**용도**: Render 사이트에서 작성한 데이터를 로컬 MySQL에 저장
+
+```bash
+node sync_postgres_to_mysql.js
+```
+
+**기능**:
+- ✅ 10초마다 PostgreSQL 변경사항 감지
+- ✅ 사용자가 Render 사이트에서 작성한 리뷰/게시글/댓글 자동 저장
+- ✅ 삭제된 데이터 자동 제거
+
+**예시**:
+1. https://ai-moviereview.onrender.com 접속
+2. 로그인 후 영화 리뷰 작성: "이 영화 최고!" (평점 10)
+3. 제출
+→ 10초 후 로컬 MySQL에 자동 저장 → MySQL Workbench에서 확인 가능
+
+### 양방향 동기화 실행 (권장)
+
+터미널 2개를 열어서 동시 실행:
+
+```bash
+# 터미널 1: MySQL → PostgreSQL
+node realtime_sync.js
+
+# 터미널 2: PostgreSQL → MySQL
+node sync_postgres_to_mysql.js
+```
+
+**또는 pm2로 백그라운드 실행**:
+
+```bash
+# pm2 설치
+npm install -g pm2
+
+# 양방향 동기화 시작
+pm2 start realtime_sync.js --name "mysql-to-pg"
+pm2 start sync_postgres_to_mysql.js --name "pg-to-mysql"
+
+# 상태 확인
+pm2 status
+
+# 로그 확인
+pm2 logs
+
+# 중지
+pm2 stop all
+```
+
+### 지원 기능
+
+| 작업 | MySQL → PostgreSQL | PostgreSQL → MySQL | 감지 시간 |
+|------|-------------------|-------------------|----------|
+| INSERT (추가) | ✅ | ✅ | 5-10초 |
+| DELETE (삭제) | ✅ | ✅ | 5-10초 |
+| UPDATE (수정) | ❌ | ❌ | 미지원* |
+
+*UPDATE는 `created_at` 기반 감지 방식이라 지원되지 않습니다. 수정이 필요하면 삭제 후 재추가하거나 양쪽 DB를 수동으로 업데이트하세요.
+
+### 동기화 주기 변경
+
+`.env` 파일에 추가:
+
+```env
+# MySQL → PostgreSQL 주기 (기본: 5초)
+SYNC_INTERVAL=5000
+
+# PostgreSQL → MySQL 주기 (기본: 10초)
+REVERSE_SYNC_INTERVAL=10000
+```
+
+---
+
+## 📚 상세 가이드 문서
+
+프로젝트에 포함된 상세 가이드 문서들:
+
+### 배포 관련
+- 📘 **DEPLOYMENT_GUIDE.md** - 전체 배포 프로세스 상세 가이드 (15-20분)
+- 📗 **RENDER_DEPLOY.md** - Render 플랫폼 사용법 (20-30분)
+- 📙 **DATA_SYNC_GUIDE.md** - MySQL ↔ PostgreSQL 데이터 동기화 (10-15분)
+
+### 동기화 관련
+- 📕 **BIDIRECTIONAL_SYNC_GUIDE.md** - 양방향 동기화 완전 가이드
+- 📓 **REALTIME_SYNC_GUIDE.md** - 실시간 동기화 설정 및 사용법
+
+### 읽는 순서 (초보자용)
+
+1. **처음 배포**: DEPLOYMENT_GUIDE.md
+2. **Render 플랫폼 이해**: RENDER_DEPLOY.md
+3. **데이터 동기화**: BIDIRECTIONAL_SYNC_GUIDE.md
 
 ---
 

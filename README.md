@@ -342,6 +342,7 @@ node create_tables.js
 ```
 
 **생성되는 테이블 (6개)**:
+
 - `users` - 사용자 정보
 - `reviews` - 영화 리뷰
 - `posts` - 게시글
@@ -350,6 +351,7 @@ node create_tables.js
 - `post_likes` - 게시글 좋아요/싫어요
 
 **특징**:
+
 - ✅ MySQL의 AUTO_INCREMENT → PostgreSQL의 SERIAL 자동 변환
 - ✅ 외래 키(Foreign Key) 관계 유지
 - ✅ 인덱스 자동 생성으로 성능 최적화
@@ -367,6 +369,7 @@ node sync_mysql_to_postgres.js
 ```
 
 **특징**:
+
 - ✅ MySQL 테이블 구조 자동 분석
 - ✅ PostgreSQL에 테이블 재생성
 - ✅ 데이터 타입 자동 변환 (INT→INTEGER, DATETIME→TIMESTAMP)
@@ -379,11 +382,13 @@ node migrate_to_postgres.js
 ```
 
 **특징**:
+
 - ✅ 기존 테이블 구조 그대로 유지
 - ✅ 데이터만 복사 (TRUNCATE → INSERT)
 - ✅ 빠른 실행 속도
 
 **언제 사용?**
+
 - 로컬에서 테스트 데이터 추가 후 → 프로덕션에 반영
 - 개발 중 새로운 사용자/리뷰/게시글 추가 후 → 배포 서버에 동기화
 
@@ -415,6 +420,7 @@ node migrate_to_postgres.js
 ```
 
 **배포 로그 확인**:
+
 ```
 ✅ PostgreSQL 연결 준비 완료
 Server running on port 10000
@@ -427,6 +433,7 @@ Server running on port 10000
 **목적**: 코드 수정 시 자동으로 Render에 재배포
 
 **현재 설정**:
+
 ```bash
 # GitHub main 브랜치에 푸시하면 자동 재배포
 git add .
@@ -435,12 +442,14 @@ git push origin main
 ```
 
 **Render에서 자동으로**:
+
 1. GitHub 변경 감지
 2. `npm install` 실행
 3. `node app.js`로 서버 재시작
 4. 새 버전 배포 완료 (3~5분 소요)
 
 **주의사항**:
+
 - ⚠️ 코드만 자동 배포됨 (데이터베이스 변경 사항 아님)
 - ⚠️ 테이블 구조 변경 시 → `node create_tables.js` 수동 실행 필요
 - ⚠️ 로컬 데이터 추가 시 → `node sync_mysql_to_postgres.js` 수동 실행 필요
@@ -456,7 +465,7 @@ graph LR
     A[로컬 MySQL] --> B[코드 수정]
     B --> C[Git Push]
     C --> D[Render 자동 재배포]
-    
+
     A --> E[데이터 추가]
     E --> F[sync_mysql_to_postgres.js]
     F --> G[Render PostgreSQL]
@@ -465,6 +474,7 @@ graph LR
 **단계별 설명**:
 
 **1. 코드만 수정한 경우** (파일 변경, 버그 수정 등)
+
 ```bash
 # 로컬에서 테스트
 node app.js
@@ -478,6 +488,7 @@ git push origin main
 ```
 
 **2. 테이블 구조를 변경한 경우** (새 컬럼 추가, 테이블 추가 등)
+
 ```bash
 # 로컬 MySQL에서 테이블 수정
 
@@ -491,6 +502,7 @@ git push origin main
 ```
 
 **3. 데이터를 추가한 경우** (새 사용자, 리뷰, 게시글 등)
+
 ```bash
 # 로컬 MySQL에 데이터 추가
 
@@ -509,13 +521,14 @@ git push origin main
 
 우리가 만든 배포 자동화 스크립트들:
 
-| 스크립트 | 기능 | 사용 시기 |
-|---------|------|----------|
-| `create_tables.js` | PostgreSQL 테이블 생성 | 최초 배포, 테이블 구조 변경 시 |
+| 스크립트                    | 기능                             | 사용 시기                        |
+| --------------------------- | -------------------------------- | -------------------------------- |
+| `create_tables.js`          | PostgreSQL 테이블 생성           | 최초 배포, 테이블 구조 변경 시   |
 | `sync_mysql_to_postgres.js` | 테이블 구조 + 데이터 완전 동기화 | 테이블 스키마 변경 + 데이터 이전 |
-| `migrate_to_postgres.js` | 데이터만 마이그레이션 | 데이터만 추가/수정된 경우 |
+| `migrate_to_postgres.js`    | 데이터만 마이그레이션            | 데이터만 추가/수정된 경우        |
 
 **실행 방법**:
+
 ```bash
 # .env 파일에 POSTGRES_URL 설정 후
 node <스크립트명>
@@ -534,18 +547,19 @@ node <스크립트명>
 
 ### ⚙️ 환경 비교
 
-| 항목 | 로컬 개발 환경 | Render 프로덕션 환경 |
-|------|---------------|---------------------|
-| **데이터베이스** | MySQL 8.0.41 | PostgreSQL 15 |
-| **포트** | 3000 | 10000 (자동 할당) |
-| **환경 변수** | `.env` 파일 | Render 대시보드 설정 |
-| **데이터 관리** | MySQL Workbench | Node.js 스크립트 |
-| **배포 방법** | `node app.js` | Git push → 자동 배포 |
-| **URL** | localhost:3000 | ai-moviereview.onrender.com |
-| **SSL/HTTPS** | ❌ | ✅ 자동 적용 |
-| **슬립 모드** | ❌ | ✅ 15분 미사용 시 |
+| 항목             | 로컬 개발 환경  | Render 프로덕션 환경        |
+| ---------------- | --------------- | --------------------------- |
+| **데이터베이스** | MySQL 8.0.41    | PostgreSQL 15               |
+| **포트**         | 3000            | 10000 (자동 할당)           |
+| **환경 변수**    | `.env` 파일     | Render 대시보드 설정        |
+| **데이터 관리**  | MySQL Workbench | Node.js 스크립트            |
+| **배포 방법**    | `node app.js`   | Git push → 자동 배포        |
+| **URL**          | localhost:3000  | ai-moviereview.onrender.com |
+| **SSL/HTTPS**    | ❌              | ✅ 자동 적용                |
+| **슬립 모드**    | ❌              | ✅ 15분 미사용 시           |
 
 **자동 DB 전환 로직** (`db.js`):
+
 ```javascript
 // DATABASE_URL 환경 변수 존재 여부로 자동 판단
 const usePostgres = !!process.env.DATABASE_URL;
@@ -561,14 +575,14 @@ if (usePostgres) {
 
 ### 💰 배포 비용
 
-| 항목 | 비용 |
-|------|------|
-| Render Web Service | **무료** (750시간/월) |
-| Render PostgreSQL | **무료** (1GB, 90일 후 갱신 필요) |
-| Gemini API | **무료** (일일 한도 내) |
-| 도메인 | **무료** (.onrender.com) |
-| SSL 인증서 | **무료** (자동 적용) |
-| **총 비용** | **완전 무료!** 🎉 |
+| 항목               | 비용                              |
+| ------------------ | --------------------------------- |
+| Render Web Service | **무료** (750시간/월)             |
+| Render PostgreSQL  | **무료** (1GB, 90일 후 갱신 필요) |
+| Gemini API         | **무료** (일일 한도 내)           |
+| 도메인             | **무료** (.onrender.com)          |
+| SSL 인증서         | **무료** (자동 적용)              |
+| **총 비용**        | **완전 무료!** 🎉                 |
 
 **주의**: Render 무료 플랜은 15분 미사용 시 슬립 모드 진입 (첫 접속 시 30초~1분 소요)
 
@@ -577,18 +591,21 @@ if (usePostgres) {
 ### 🎯 배포 성공 체크리스트
 
 #### ✅ 배포 전
+
 - [x] GitHub 저장소 생성 및 코드 푸시
 - [x] Render PostgreSQL 생성
 - [x] `create_tables.js`로 테이블 생성
 - [x] 환경 변수 설정 (DATABASE_URL, GEMINI_API_KEY)
 
 #### ✅ 배포 완료
+
 - [x] Render Web Service 생성
 - [x] 빌드 성공 확인
 - [x] "PostgreSQL 연결 준비 완료" 로그 확인
 - [x] 프로덕션 URL 접속 가능
 
 #### ✅ 운영 중
+
 - [x] Git push 시 자동 재배포 작동
 - [x] 데이터 동기화 스크립트 사용 가능
 - [x] 로컬 개발 환경 정상 작동
@@ -598,24 +615,28 @@ if (usePostgres) {
 ### 🔧 트러블슈팅
 
 **문제: 배포 후 "Database connection failed"**
+
 ```bash
 # 해결: DATABASE_URL 환경 변수 확인
 Render 대시보드 → Web Service → Environment → DATABASE_URL 재설정
 ```
 
 **문제: 테이블이 없다는 오류**
+
 ```bash
 # 해결: 테이블 재생성
 node create_tables.js
 ```
 
 **문제: 로컬 데이터가 Render에 없음**
+
 ```bash
 # 해결: 데이터 동기화
 node sync_mysql_to_postgres.js
 ```
 
 **문제: 코드 수정 후 배포되지 않음**
+
 ```bash
 # 해결: Render에서 수동 재배포
 Render 대시보드 → Web Service → Manual Deploy → Deploy latest commit
@@ -626,6 +647,7 @@ Render 대시보드 → Web Service → Manual Deploy → Deploy latest commit
 ### 🌐 로컬 vs 배포 환경
 
 **로컬 개발** (`npm start` 또는 `node app.js`):
+
 ```
 ✅ MySQL 연결 준비 완료
 Server running on port 3000
@@ -633,13 +655,15 @@ Server running on port 3000
 ```
 
 **Render 배포** (자동):
+
 ```
-✅ PostgreSQL 연결 준비 완료  
+✅ PostgreSQL 연결 준비 완료
 Server running on port 10000
 → https://ai-moviereview.onrender.com
 ```
 
 ---
+
 - 배포: Render 환경 변수 `DATABASE_URL` 있음 → PostgreSQL 사용
 
 ---

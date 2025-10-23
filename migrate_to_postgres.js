@@ -95,7 +95,7 @@ async function migrateData() {
           review.id,
           review.user_id,
           review.movie_title,
-          review.rating,
+          parseInt(review.rating) || 0,  // 문자열을 정수로 변환
           review.content,
           review.recommend,
           review.created_at,

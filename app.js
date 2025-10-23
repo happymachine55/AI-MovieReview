@@ -222,10 +222,13 @@ app.post('/api/reviews', (req, res) => {
     const { movie_title, rating, content, recommend } = req.body;
     const userId = req.session.userId; // 세션에서 사용자 ID 가져오기 (보안)
     
-    const sql = 'INSERT INTO reviews (movie_title, user_id, rating, content, recommend, created_at) VALUES (?, ?, ?, ?, ?, NOW())';
+    // PostgreSQL 호환: RETURNING id 추가
+    const sql = 'INSERT INTO reviews (movie_title, user_id, rating, content, recommend, created_at) VALUES (?, ?, ?, ?, ?, NOW()) RETURNING id';
     pool.query(sql, [movie_title, userId, rating, content, recommend], (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: result.insertId }); // 생성된 리뷰 ID 반환
+      // PostgreSQL: result[0].id, MySQL: result.insertId
+      const insertId = result[0]?.id || result.insertId;
+      res.json({ id: insertId }); // 생성된 리뷰 ID 반환
     });
   });
   
@@ -343,10 +346,13 @@ app.post('/api/posts', (req, res) => {
     }
   const { title, content } = req.body;
   const userId = req.session.userId; // ✅ 세션에서 가져옴
-  const sql = 'INSERT INTO posts (user_id, title, content, created_at) VALUES (?, ?, ?, NOW())';
+  // PostgreSQL 호환: RETURNING id 추가
+  const sql = 'INSERT INTO posts (user_id, title, content, created_at) VALUES (?, ?, ?, NOW()) RETURNING id';
   pool.query(sql, [userId, title, content], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: result.insertId });
+    // PostgreSQL: result[0].id, MySQL: result.insertId
+    const insertId = result[0]?.id || result.insertId;
+    res.json({ id: insertId });
   });
 });
 
@@ -359,7 +365,8 @@ app.post('/api/comments', (req, res) => {
   const userId = req.session.userId; // ✅ 세션에서만 가져옴
   
   // ✅ [수정] created_at 컬럼에 NOW() 함수를 이용해 현재 시간을 명시적으로 추가합니다.
-  const sql = 'INSERT INTO comments (post_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())';
+  // PostgreSQL 호환: RETURNING id 추가
+  const sql = 'INSERT INTO comments (post_id, user_id, content, created_at) VALUES (?, ?, ?, NOW()) RETURNING id';
   
   pool.query(sql, [post_id, userId, content], (err, result) => { // ✅ userId로 통일
     if (err) {
@@ -368,7 +375,9 @@ app.post('/api/comments', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     // 성공 시, 새로 생성된 댓글의 id를 포함하여 응답
-    res.status(201).json({ id: result.insertId }); 
+    // PostgreSQL: result[0].id, MySQL: result.insertId
+    const insertId = result[0]?.id || result.insertId;
+    res.status(201).json({ id: insertId }); 
   });
 });
 

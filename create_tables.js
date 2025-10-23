@@ -1,10 +1,18 @@
 // Render PostgreSQL 테이블 생성 스크립트
 // DBeaver 대신 Node.js로 직접 테이블 생성
 
+require('dotenv').config();
 const { Client } = require('pg');
 
-// Render PostgreSQL Internal Database URL
-const DATABASE_URL = 'postgresql://gallery_movie_l9rv_user:NEgN7qT3L5jlpGlehvY3LrVcn6zwKizJ@dpg-d3sti2prf0fns738p1ee0-a.singapore-postgres.render.com/gallery_movie_l9rv';
+// .env 파일에서 PostgreSQL URL 읽기
+const DATABASE_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+    console.error('❌ 오류: .env 파일에 POSTGRES_URL이 설정되지 않았습니다!');
+    console.log('💡 .env 파일에 다음을 추가하세요:');
+    console.log('POSTGRES_URL=postgresql://user:password@host/database');
+    process.exit(1);
+}
 
 async function createTables() {
     const client = new Client({

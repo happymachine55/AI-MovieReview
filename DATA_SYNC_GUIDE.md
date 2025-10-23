@@ -23,8 +23,8 @@
 ```env
 # 기존 MySQL 설정
 DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=1111
+DB_USER=your_put_code
+DB_PASSWORD=your_put_code
 DB_NAME=gallery_movie
 
 # Render PostgreSQL URL 추가
@@ -97,8 +97,8 @@ MySQL → PostgreSQL 완전 동기화 시작
 ```env
 # 기존 MySQL 설정
 DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=1111
+DB_USER=your_put_code
+DB_PASSWORD=your_put_code
 DB_NAME=gallery_movie
 
 # Render PostgreSQL URL 추가

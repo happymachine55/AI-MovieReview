@@ -66,8 +66,8 @@
    ```env
    # 기존 MySQL 설정
    DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=1111
+   DB_USER=your_put_code
+   DB_PASSWORD=your_put_code
    DB_NAME=gallery_movie
 
    # Render PostgreSQL URL 추가 (Step 2에서 복사한 Internal Database URL)

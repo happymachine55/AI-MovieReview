@@ -32,8 +32,8 @@ const usePostgres = !!process.env.DATABASE_URL;
 
 ```env
 DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=1111
+DB_USER=your_put_code
+DB_PASSWORD=your_put_code
 DB_NAME=gallery_movie
 # DATABASE_URL 없음 → MySQL 사용 ✅
 ```
@@ -92,8 +92,8 @@ Internal Database URL: postgresql://gallery_movie_user:password@dpg-xxxxx/galler
    ```env
    # 기존 MySQL 설정
    DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=1111
+   DB_USER=your_put_code
+   DB_PASSWORD=your_put_code
    DB_NAME=gallery_movie
 
    # Render PostgreSQL URL 추가 (Step 1에서 복사한 Internal Database URL)
@@ -187,8 +187,8 @@ https://ai-moviereview.onrender.com
 ```bash
 # .env 파일 (DATABASE_URL 없음)
 DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=1111
+DB_USER=your_put_code
+DB_PASSWORD=your_put_code
 DB_NAME=gallery_movie
 GEMINI_API_KEY=your_gemini_api_key_here
 ```

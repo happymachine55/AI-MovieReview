@@ -289,13 +289,43 @@ This project is licensed under the MIT License.
 
 프로젝트 관련 문의사항은 [GitHub Issues](https://github.com/happymachine55/AI-MovieReview/issues)에 남겨주세요.
 
-- 품목 별 랭킹 조회
-  - 기존의 에너지효율 등급과 탄소배출량 등을 고려하여 매긴 자체점수를 이용해 가전제품의 랭킹을 사용자에게 보여준다.
-  - 기존의 에너지효율 등급만으로는 동일한 등급 간의 비교가 어려웠고, 얼마만큼의 이득이 생기는지가 수치적으로 드러나지 않는다는 단점이 존재했다. 이러한 점을 개선하기 위해 자체 점수 제도를 도입하였다.
-  - 또한 등급간의 비율도 가전기기의 종류마다 제각각이었기 때문에 인공지능을 활용해 공평하게 등급을 구분하였다면
+---
 
-## ✒️ API
+## 🚀 배포하기 (Render)
 
-- API 상세설명 : <>
+### 빠른 시작
 
-- API 명세서 : <>
+```bash
+# 1. Render PostgreSQL 생성 (웹에서)
+# 2. .env에 POSTGRES_URL 추가
+# 3. 테이블 생성
+node create_tables.js
+
+# 4. Render Web Service 생성 (웹에서)
+# 5. 배포 완료!
+```
+
+**상세 가이드:**
+
+- 📖 [빠른 배포 가이드](QUICK_DEPLOY.md) - 3단계로 끝!
+- 📖 [전체 배포 가이드](DEPLOYMENT_GUIDE.md) - 상세 설명
+- 📖 [데이터 동기화](DATA_SYNC_GUIDE.md) - MySQL ↔ PostgreSQL
+
+**배포 환경:**
+
+- ✅ **Render Free Plan** - 완전 무료 (750시간/월)
+- ✅ **PostgreSQL 15** - 1GB 스토리지
+- ✅ **자동 SSL** - HTTPS 지원
+- ✅ **Node.js 스크립트로 간편 배포** - PostgreSQL 설치 불필요!
+
+### 로컬 vs 배포 환경
+
+| 환경     | 데이터베이스  | 관리 방법        | 용도        |
+| -------- | ------------- | ---------------- | ----------- |
+| **로컬** | MySQL 8.0.41  | MySQL Workbench  | 개발/테스트 |
+| **배포** | PostgreSQL 15 | Node.js 스크립트 | 프로덕션    |
+
+**자동 전환:**
+
+- 로컬: `.env`에 `DATABASE_URL` 없음 → MySQL 사용
+- 배포: Render 환경 변수 `DATABASE_URL` 있음 → PostgreSQL 사용

@@ -49,6 +49,18 @@ DATABASE_URL=postgresql://user:pass@host/db
 
 ## 📋 Render 배포 체크리스트
 
+### ✅ 준비물
+
+- [x] GitHub 계정
+- [x] 프로젝트가 GitHub에 푸시되어 있음
+- [x] 로컬에 Node.js 설치되어 있음 (테이블 생성용)
+
+**필요 없는 것:**
+
+- ❌ PostgreSQL 로컬 설치 (불필요!)
+- ❌ DBeaver 설치 (불필요!)
+- ❌ psql 클라이언트 (불필요!)
+
 ### ✅ 1단계: Render PostgreSQL 생성
 
 1. https://dashboard.render.com 접속
@@ -69,53 +81,51 @@ DATABASE_URL=postgresql://user:pass@host/db
 Internal Database URL: postgresql://gallery_movie_user:password@dpg-xxxxx/gallery_movie
 ```
 
-### ✅ 2단계: DBeaver로 테이블 생성
+### ✅ 2단계: PostgreSQL 테이블 생성
 
-#### DBeaver 연결 설정
-
-1. **DBeaver 실행**
-2. **새 연결** 생성 (플러그 아이콘)
-3. **PostgreSQL** 선택
-4. 연결 정보 입력:
-
-**Main 탭:**
-
-```
-Host: dpg-xxxxx-a.singapore-postgres.render.com
-Port: 5432
-Database: gallery_movie
-Username: gallery_movie_user
-Password: (Render에서 복사)
-```
-
-**SSL 탭:**
-
-```
-☑️ Use SSL
-SSL mode: require
-```
-
-5. **"Test Connection"** → 드라이버 다운로드
-6. **"Finish"** 클릭
+**Node.js 스크립트로 간편하게 생성! (PostgreSQL 설치 불필요)**
 
 #### 테이블 생성
 
-1. 연결된 데이터베이스 우클릭
-2. **"SQL Editor"** → **"New SQL Script"**
-3. 프로젝트의 `init_postgres.sql` 파일 내용 복사
-4. 붙여넣기 후 **Ctrl+Enter** 실행
+1. **.env 파일에 PostgreSQL URL 추가:**
+
+   ```env
+   # 기존 MySQL 설정
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=1111
+   DB_NAME=gallery_movie
+
+   # Render PostgreSQL URL 추가 (Step 1에서 복사한 Internal Database URL)
+   POSTGRES_URL=postgresql://gallery_movie_user:password@dpg-xxxxx.singapore-postgres.render.com/gallery_movie
+
+   # API 키
+   GEMINI_API_KEY=your_gemini_api_key
+   ```
+
+2. **테이블 생성 스크립트 실행:**
+
+   ```bash
+   node create_tables.js
+   ```
+
+3. **성공 메시지 확인:**
+
+   ```
+   ✨ PostgreSQL 테이블 생성 완료!
+
+   🎉 성공! 생성된 테이블:
+      1. comments
+      2. post_likes
+      3. posts
+      4. review_likes
+      5. reviews
+      6. users
+   ```
 
 **확인:**
 
-```
-Tables (6개)
-├─ users
-├─ reviews
-├─ posts
-├─ comments
-├─ review_likes
-└─ post_likes
-```
+테이블 6개가 성공적으로 생성되었습니다! ✅
 
 ### ✅ 3단계: Render Web Service 생성
 
@@ -180,7 +190,7 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=1111
 DB_NAME=gallery_movie
-GEMINI_API_KEY=AIzaSyA7F_lOhtM7DDYxATLrcc9A2AwvNv7vpUQ
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### 서버 실행

@@ -57,24 +57,64 @@
 
 데이터베이스가 생성되면 테이블을 만들어야 합니다.
 
-#### 방법 A: Render 웹 콘솔 사용 (쉬움)
+#### 🚀 Node.js 스크립트 사용 (추천! PostgreSQL 설치 불필요)
+
+**로컬 컴퓨터에서 실행:**
+
+1. **.env 파일에 PostgreSQL URL 추가:**
+
+   ```env
+   # 기존 MySQL 설정
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=1111
+   DB_NAME=gallery_movie
+
+   # Render PostgreSQL URL 추가 (Step 2에서 복사한 Internal Database URL)
+   POSTGRES_URL=postgresql://gallery_movie_l9rv_user:password@dpg-xxxxx.singapore-postgres.render.com/gallery_movie_l9rv
+
+   # API 키
+   GEMINI_API_KEY=your_gemini_api_key
+   ```
+
+2. **테이블 생성 스크립트 실행:**
+
+   ```bash
+   node create_tables.js
+   ```
+
+3. **결과 확인:**
+
+   ```
+   🔌 Render PostgreSQL 연결 중...
+   ✅ 연결 성공!
+
+   👥 users 테이블 생성 중...
+   ✅ users 테이블 생성 완료
+   ⭐ reviews 테이블 생성 중...
+   ✅ reviews 테이블 생성 완료
+   ... (나머지 테이블도 동일)
+
+   🎉 성공! 생성된 테이블:
+      1. comments
+      2. post_likes
+      3. posts
+      4. review_likes
+      5. reviews
+      6. users
+
+   ✨ PostgreSQL 테이블 생성 완료!
+   ```
+
+#### 대안: Render 웹 콘솔 사용 (복잡함, 비추천)
 
 1. PostgreSQL 대시보드 → 왼쪽 메뉴 **"Shell"** 클릭
 2. 자동으로 psql 콘솔이 열림
 3. 프로젝트의 `init_postgres.sql` 파일 내용을 복사
 4. psql 콘솔에 붙여넣기
 5. Enter 키로 실행
-6. `PostgreSQL 테이블 생성 완료!` 메시지 확인
 
-#### 방법 B: psql 클라이언트 사용
-
-```bash
-# PostgreSQL 클라이언트가 설치되어 있다면
-psql <Internal Database URL>
-
-# init_postgres.sql 실행
-\i path/to/init_postgres.sql
-```
+**⚠️ 주의:** Render 웹 콘솔은 불안정할 수 있으므로 **Node.js 스크립트 사용을 강력히 추천합니다!**
 
 ### Step 4: Web Service 생성
 

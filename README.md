@@ -329,3 +329,111 @@ node create_tables.js
 
 - 로컬: `.env`에 `DATABASE_URL` 없음 → MySQL 사용
 - 배포: Render 환경 변수 `DATABASE_URL` 있음 → PostgreSQL 사용
+
+---
+
+## 📚 배포 문서 읽는 순서
+
+배포가 처음이라면 이 순서대로 문서를 읽으세요!
+
+### 1️⃣ 빠른 시작 (초보자용)
+
+**파일:** `QUICK_DEPLOY.md`  
+**소요 시간:** 5분  
+**내용:** 3단계로 끝나는 빠른 배포 가이드
+
+```bash
+1. Render PostgreSQL 생성
+2. node create_tables.js 실행
+3. Render Web Service 배포
+```
+
+### 2️⃣ 상세 배포 가이드 (추천!)
+
+**파일:** `DEPLOYMENT_GUIDE.md`  
+**소요 시간:** 15-20분  
+**내용:**
+
+- 전체 배포 프로세스 상세 설명
+- 로컬 MySQL vs Render PostgreSQL 차이
+- 자동 데이터베이스 전환 원리
+- 트러블슈팅 가이드
+
+**읽는 순서:**
+
+1. 현재 상황 파악
+2. 작동 원리 이해
+3. Render 배포 체크리스트 따라하기
+4. 로컬 개발 환경 설정
+
+### 3️⃣ Render 플랫폼 가이드
+
+**파일:** `RENDER_DEPLOY.md`  
+**소요 시간:** 20-30분  
+**내용:**
+
+- Render 플랫폼 상세 사용법
+- PostgreSQL 테이블 생성 방법
+- 환경 변수 설정
+- 무료 플랜 제한사항
+- 슬립 모드 해결책
+
+**언제 읽을까?**
+
+- Render 플랫폼이 처음인 경우
+- 환경 변수 설정이 헷갈릴 때
+- 배포 후 문제 해결이 필요할 때
+
+### 4️⃣ 데이터 동기화
+
+**파일:** `DATA_SYNC_GUIDE.md`  
+**소요 시간:** 10-15분  
+**내용:**
+
+- 로컬 MySQL → Render PostgreSQL 데이터 복사
+- 3가지 동기화 방법
+- 자주 묻는 질문
+
+**언제 읽을까?**
+
+- 로컬 테스트 데이터를 배포 서버에 올리고 싶을 때
+- 개발 중 추가한 데이터를 프로덕션에 반영할 때
+
+### 5️⃣ DBeaver 가이드 (참고용)
+
+**파일:** `DBEAVER_SETUP.md`  
+**상태:** ⚠️ 더 이상 사용 안 함 (아카이브)  
+**내용:**
+
+- Node.js 스크립트 사용을 권장
+- DBeaver는 복잡하고 불안정함
+
+---
+
+## 🎯 상황별 추천 문서
+
+### 처음 배포하는 경우
+
+```
+QUICK_DEPLOY.md → DEPLOYMENT_GUIDE.md
+```
+
+### 배포 중 문제 발생
+
+```
+RENDER_DEPLOY.md (트러블슈팅 섹션)
+```
+
+### 데이터 이전 필요
+
+```
+DATA_SYNC_GUIDE.md
+```
+
+### 전체 이해하고 싶은 경우
+
+```
+DEPLOYMENT_GUIDE.md → RENDER_DEPLOY.md → DATA_SYNC_GUIDE.md
+```
+
+---

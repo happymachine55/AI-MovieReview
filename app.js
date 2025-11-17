@@ -1,12 +1,16 @@
 // ========================================================
 // 📦 필수 모듈 불러오기
 // ========================================================
-require('dotenv').config(); // 환경 변수 로드 (.env 파일)
 const path = require('path'); // 파일 경로 처리
+// .env 파일을 현재 소스 파일 기준으로 명시해서 로드합니다.
+// 이렇게 하면 부모 디렉터리에서 `node AI-MovieReview\app.js`로 실행해도 .env가 읽힙니다.
+require('dotenv').config({ path: path.join(__dirname, '.env') }); // 환경 변수 로드 (.env 파일)
 const express = require('express'); // 웹 서버 프레임워크
 const fetch = require('node-fetch'); // HTTP 요청 (Gemini API 호출용)
 const bcrypt = require('bcrypt'); // 비밀번호 암호화
 const pool = require('./db.js'); // MySQL 데이터베이스 연결 풀
+const multer = require('multer'); // 파일 업로드
+const fs = require('fs');
 
 // ========================================================
 // 🚀 Express 앱 초기화 및 미들웨어 설정
@@ -30,6 +34,22 @@ app.use(session({
 // ========================================================
 // frontend 폴더의 파일들을 웹에서 접근 가능하게 설정
 app.use(express.static(path.join(__dirname, 'frontend')));
+
+// 업로드 디렉터리 설정
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+app.use('/uploads', express.static(uploadDir));
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, 'profile-' + Date.now() + ext);
+    }
+});
+const upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ========================================================
 // 🔑 로그인 API (bcrypt 암호화 적용)
@@ -62,8 +82,9 @@ app.post('/api/login', async (req, res) => {
                 // 로그인 성공 시 세션에 사용자 정보 저장
                 req.session.userId = user.id; // 사용자 ID 저장
                 req.session.username = user.username; // 사용자명 저장
+                req.session.profileImage = user.profile_image || null; // 프로필 이미지 경로 저장
                 
-                res.json({ success: true, user: { id: user.id, username: user.username } });
+                res.json({ success: true, user: { id: user.id, username: user.username, profile_image: user.profile_image || null } });
             }
         );
     } catch (error) {
@@ -85,7 +106,7 @@ app.post('/api/logout', (req, res) => {
 // ========================================================
 // 📝 회원가입 API (bcrypt 암호화 적용)
 // ========================================================
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', upload.single('profile'), async (req, res) => {
     const { username, password } = req.body;
     
     // 입력 검증
@@ -114,18 +135,31 @@ app.post('/api/register', async (req, res) => {
             
             // 비밀번호 해시화 (bcrypt, saltRounds=10)
             const hashedPassword = await bcrypt.hash(password, 10);
-            
-            // 회원 등록
-            const sql = 'INSERT INTO users (username, password, created_at) VALUES (?, ?, NOW())';
-            pool.query(sql, [username, hashedPassword], (err, result) => {
+
+            // 프로필 이미지 경로
+            let profilePath = null;
+            if (req.file) {
+                profilePath = '/uploads/' + req.file.filename;
+            }
+
+            // 회원 등록 (profile_image 컬럼이 있어야 합니다)
+            const sql = 'INSERT INTO users (username, password, profile_image, created_at) VALUES (?, ?, ?, NOW())';
+            pool.query(sql, [username, hashedPassword, profilePath], (err, result) => {
                 if (err) {
+                    console.error('회원가입 DB 오류:', err);
                     return res.status(500).json({ error: err.message });
                 }
-                
+
+                // 세션에 프로필 정보 저장
+                req.session.userId = result.insertId;
+                req.session.username = username;
+                req.session.profileImage = profilePath;
+
                 res.json({ 
                     success: true, 
                     message: '회원가입이 완료되었습니다.',
-                    userId: result.insertId 
+                    userId: result.insertId,
+                    profileImage: profilePath
                 });
             });
         });
@@ -144,7 +178,8 @@ app.get('/api/me', (req, res) => {
         res.json({ loggedIn: true, 
             user: { 
                 id: req.session.userId, 
-                username: req.session.username 
+                username: req.session.username,
+                profile_image: req.session.profileImage || null
             } 
         });
     } else { // 세션에 userId가 없으면 로그아웃 상태
@@ -600,6 +635,35 @@ app.get('/api/reviews/:id/like-status', (req, res) => {
 // ========================================================
 // 👍👎 게시글 좋아요/싫어요 API
 // ========================================================
+
+// ========================================================
+// 📝 사용자 피드백 API
+// ========================================================
+// POST /api/feedback - 사용자 피드백 제출 (로그인 필요)
+app.post('/api/feedback', (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: '로그인이 필요합니다.' });
+    const { content } = req.body;
+    if (!content || !content.trim()) return res.status(400).json({ error: '내용을 입력해주세요.' });
+
+    const sql = 'INSERT INTO feedbacks (user_id, content, created_at) VALUES (?, ?, NOW())';
+    pool.query(sql, [req.session.userId, content], (err, result) => {
+        if (err) {
+            console.error('피드백 DB 오류:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ success: true, id: result.insertId });
+    });
+});
+
+// GET /api/feedback - 현재 사용자가 제출한 피드백 목록 조회
+app.get('/api/feedback', (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: '로그인이 필요합니다.' });
+    const sql = `SELECT feedbacks.*, users.username FROM feedbacks LEFT JOIN users ON feedbacks.user_id = users.id WHERE feedbacks.user_id = ? ORDER BY feedbacks.created_at DESC`;
+    pool.query(sql, [req.session.userId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
 
 // POST /api/posts/:id/like - 게시글 좋아요/싫어요 토글
 app.post('/api/posts/:id/like', (req, res) => {

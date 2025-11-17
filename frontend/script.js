@@ -28,6 +28,15 @@ function updateLoginStatus() {
             if (data.loggedIn) {
                 // 로그인 상태: 사용자 이름 표시, 로그아웃 버튼 표시
                 document.getElementById('username-display').textContent = data.user.username + ' 님';
+                // 프로필 이미지 표시
+                if (data.user.profile_image) {
+                    const img = document.getElementById('profile-img');
+                    img.src = data.user.profile_image;
+                    img.style.display = 'inline-block';
+                } else {
+                    const img = document.getElementById('profile-img');
+                    img.style.display = 'none';
+                }
                 document.getElementById('login-btn').style.display = 'none';
                 document.getElementById('register-btn').style.display = 'none'; // 추가
                 document.getElementById('logout-btn').style.display = 'inline';
@@ -105,34 +114,73 @@ function login() {
 
 // 📌 회원가입 함수
 function register() {
-    const username = prompt('새로운 아이디를 입력하세요:');
-    const password = prompt('비밀번호를 입력하세요:');
-    const passwordConfirm = prompt('비밀번호를 다시 입력하세요:');
-    
-    if (!username || !password || !passwordConfirm) {
-        alert('모든 정보를 입력해주세요.');
-        return;
-    }
-    
-    if (password !== passwordConfirm) {
-        alert('비밀번호가 일치하지 않습니다.');
-        return;
-    }
-    
-    fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert('회원가입 성공! 로그인해주세요.');
-        } else {
-            alert(data.error || '회원가입 실패');
+    // 동적 모달 형태의 가입 폼 생성 (프로필 이미지 업로드 포함)
+    if (document.getElementById('registerModal')) return; // 이미 열려있으면 무시
+
+    const modal = document.createElement('div');
+    modal.id = 'registerModal';
+    modal.style.position = 'fixed';
+    modal.style.left = '0';
+    modal.style.top = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.5)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '9999';
+
+    modal.innerHTML = `
+        <div style="background:#fff;padding:20px;border-radius:8px;max-width:420px;width:100%;">
+            <h3>회원가입</h3>
+            <div style="margin-bottom:8px;"><input id="reg-username" placeholder="아이디" style="width:100%;padding:8px;"></div>
+            <div style="margin-bottom:8px;"><input id="reg-password" type="password" placeholder="비밀번호" style="width:100%;padding:8px;"></div>
+            <div style="margin-bottom:8px;"><input id="reg-password-confirm" type="password" placeholder="비밀번호 확인" style="width:100%;padding:8px;"></div>
+            <div style="margin-bottom:8px;"><label>프로필 이미지 (선택)</label><input id="reg-profile" type="file" accept="image/*" style="width:100%;"></div>
+            <div style="text-align:right;margin-top:12px;"><button id="reg-cancel">취소</button> <button id="reg-submit">가입</button></div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('reg-cancel').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    document.getElementById('reg-submit').addEventListener('click', async () => {
+        const username = document.getElementById('reg-username').value.trim();
+        const password = document.getElementById('reg-password').value;
+        const passwordConfirm = document.getElementById('reg-password-confirm').value;
+        const profileFile = document.getElementById('reg-profile').files[0];
+
+        if (!username || !password || !passwordConfirm) {
+            alert('모든 정보를 입력해주세요.');
+            return;
         }
-    })
-    .catch(() => alert('서버 오류가 발생했습니다.'));
+        if (password !== passwordConfirm) {
+            alert('비밀번호가 일치하지 않습니다.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+        if (profileFile) formData.append('profile', profileFile);
+
+        try {
+            const res = await fetch('/api/register', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                alert('회원가입 성공! 자동으로 로그인 되었습니다.');
+                modal.remove();
+                updateLoginStatus();
+            } else {
+                alert('회원가입 실패: ' + (data.error || JSON.stringify(data)));
+            }
+        } catch (err) {
+            alert('서버 오류: ' + err.message);
+        }
+    });
 }
 
 

@@ -2,7 +2,9 @@
 // 📦 데이터베이스 연결 설정 (MySQL & PostgreSQL 지원)
 // ========================================================
 
-require('dotenv').config();
+const path = require('path');
+// .env 파일을 이 모듈 기준으로 명시적으로 로드합니다.
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // DATABASE_URL이 있으면 PostgreSQL, 없으면 MySQL 사용
 const usePostgres = !!process.env.DATABASE_URL;

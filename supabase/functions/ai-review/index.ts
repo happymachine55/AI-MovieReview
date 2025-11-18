@@ -9,7 +9,7 @@ const corsHeaders = {
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -72,15 +72,15 @@ serve(async (req) => {
         console.error('JSON 파싱 실패, 원본 텍스트 사용');
       }
 
-      // DB에 저장
+      // DB에 저장 - content에 AI 리뷰 저장
       const { data, error } = await supabaseClient
         .from('reviews')
         .insert({
           user_id,
           movie_title,
-          user_review,
-          ai_review: aiReview,
-          rating
+          content: aiReview,  // AI가 생성한 리뷰를 content에 저장
+          rating,
+          recommend: `사용자 리뷰: ${user_review}`  // 사용자의 원본 리뷰는 recommend에 저장
         })
         .select()
         .single();
@@ -104,7 +104,7 @@ serve(async (req) => {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

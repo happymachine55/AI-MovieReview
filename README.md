@@ -369,6 +369,7 @@ node create_tables.js
 ```
 
 **생성되는 테이블 (6개)**:
+
 - `users` - 사용자 정보 (id, username, password, created_at)
 - `reviews` - 영화 리뷰 (id, user_id, movie_title, rating, content, recommend, likes/dislikes)
 - `posts` - 게시글 (id, user_id, title, content, views, recommend, likes/dislikes)
@@ -377,6 +378,7 @@ node create_tables.js
 - `post_likes` - 게시글 좋아요/싫어요 (id, post_id, user_id, like_type)
 
 **자동 변환 기능**:
+
 - ✅ MySQL AUTO_INCREMENT → PostgreSQL SERIAL
 - ✅ DATETIME → TIMESTAMP
 - ✅ 외래 키 제약조건 유지
@@ -404,6 +406,7 @@ node migrate_to_postgres.js
 ```
 
 **특징**:
+
 - ✅ 모든 테이블 데이터 자동 복사
 - ✅ rating 필드 자동 형변환 (문자열→정수)
 - ✅ 시퀀스(Auto Increment) 자동 리셋
@@ -436,6 +439,7 @@ node migrate_to_postgres.js
 ```
 
 **배포 로그 확인** (Logs 탭):
+
 ```
 ==> Building on host: ...
 ==> Downloading cache...
@@ -468,6 +472,7 @@ git push origin main
 ```
 
 **주의사항**:
+
 - ✅ **코드 변경**: 자동 배포됨
 - ⚠️ **환경 변수 변경**: Render 대시보드에서 수동 수정 필요
 - ⚠️ **테이블 구조 변경**: `create_tables.js` 수동 실행 필요
@@ -512,6 +517,7 @@ node realtime_sync.js
 ```
 
 **지원 기능**:
+
 - ✅ INSERT (추가): 새 데이터 자동 감지 및 추가
 - ✅ DELETE (삭제): 삭제된 데이터 자동 감지 및 삭제
 - ⚠️ UPDATE (수정): 미지원 (created_at 기준 감지)
@@ -539,6 +545,7 @@ node sync_postgres_to_mysql.js
 ```
 
 **사용 시나리오**:
+
 1. 사용자가 https://ai-moviereview.onrender.com 접속
 2. 로그인 후 영화 리뷰 작성
 3. PostgreSQL에 즉시 저장
@@ -580,6 +587,7 @@ REVERSE_SYNC_INTERVAL=10000
 ```
 
 **권장 설정**:
+
 - 개발 중: 5초/10초 (빠른 피드백)
 - 일반 사용: 10초/15초 (안정적)
 - 저사양 PC: 20초/30초 (부하 감소)
@@ -650,13 +658,13 @@ git push origin main
 
 ### � 주요 스크립트
 
-| 스크립트                       | 기능                                 | 사용 시기                    |
-| ------------------------------ | ------------------------------------ | ---------------------------- |
-| `create_tables.js`             | PostgreSQL 테이블 생성               | 최초 배포, 테이블 구조 변경  |
-| `migrate_to_postgres.js`       | MySQL → PostgreSQL 데이터 마이그레이션 | 초기 데이터 이전             |
-| `realtime_sync.js`             | MySQL → PostgreSQL 실시간 동기화 (정방향) | 로컬 개발 중 데이터 자동 반영 |
-| `sync_postgres_to_mysql.js`    | PostgreSQL → MySQL 실시간 동기화 (역방향) | Render 데이터 로컬 백업       |
-| `fix_mysql_posts.js`           | MySQL 테이블 구조 자동 수정          | 컬럼 누락 오류 발생 시       |
+| 스크립트                    | 기능                                      | 사용 시기                     |
+| --------------------------- | ----------------------------------------- | ----------------------------- |
+| `create_tables.js`          | PostgreSQL 테이블 생성                    | 최초 배포, 테이블 구조 변경   |
+| `migrate_to_postgres.js`    | MySQL → PostgreSQL 데이터 마이그레이션    | 초기 데이터 이전              |
+| `realtime_sync.js`          | MySQL → PostgreSQL 실시간 동기화 (정방향) | 로컬 개발 중 데이터 자동 반영 |
+| `sync_postgres_to_mysql.js` | PostgreSQL → MySQL 실시간 동기화 (역방향) | Render 데이터 로컬 백업       |
+| `fix_mysql_posts.js`        | MySQL 테이블 구조 자동 수정               | 컬럼 누락 오류 발생 시        |
 
 **실행 방법**:
 
@@ -678,17 +686,17 @@ node <스크립트명>
 
 ### ⚙️ 환경 비교
 
-| 항목               | 로컬 개발 환경         | Render 프로덕션 환경                |
-| ------------------ | ---------------------- | ----------------------------------- |
-| **데이터베이스**   | MySQL 8.0.41           | PostgreSQL 15                       |
-| **포트**           | 3000                   | 10000 (자동 할당)                   |
-| **환경 변수**      | `.env` 파일            | Render 대시보드 설정                |
-| **데이터 관리**    | MySQL Workbench        | Node.js 스크립트 + 양방향 동기화    |
-| **배포 방법**      | `node app.js`          | Git push → 자동 배포                |
-| **URL**            | localhost:3000         | ai-moviereview.onrender.com         |
-| **SSL/HTTPS**      | ❌                     | ✅ 자동 적용                        |
-| **슬립 모드**      | ❌                     | ✅ 15분 미사용 시                   |
-| **데이터 백업**    | 수동                   | ✅ 역방향 동기화로 자동 백업        |
+| 항목             | 로컬 개발 환경  | Render 프로덕션 환경             |
+| ---------------- | --------------- | -------------------------------- |
+| **데이터베이스** | MySQL 8.0.41    | PostgreSQL 15                    |
+| **포트**         | 3000            | 10000 (자동 할당)                |
+| **환경 변수**    | `.env` 파일     | Render 대시보드 설정             |
+| **데이터 관리**  | MySQL Workbench | Node.js 스크립트 + 양방향 동기화 |
+| **배포 방법**    | `node app.js`   | Git push → 자동 배포             |
+| **URL**          | localhost:3000  | ai-moviereview.onrender.com      |
+| **SSL/HTTPS**    | ❌              | ✅ 자동 적용                     |
+| **슬립 모드**    | ❌              | ✅ 15분 미사용 시                |
+| **데이터 백업**  | 수동            | ✅ 역방향 동기화로 자동 백업     |
 
 **자동 DB 전환 로직** (`db.js`):
 
@@ -698,19 +706,19 @@ const usePostgres = !!process.env.DATABASE_URL;
 
 if (usePostgres) {
   // PostgreSQL 사용 (Render 프로덕션)
-  const { Pool } = require('pg');
+  const { Pool } = require("pg");
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
   });
 } else {
   // MySQL 사용 (로컬 개발)
-  const mysql = require('mysql2');
+  const mysql = require("mysql2");
   pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
   });
 }
 ```
@@ -815,6 +823,7 @@ Server running on port 10000
 ### 동기화 방향
 
 #### 1. MySQL → PostgreSQL (정방향)
+
 **스크립트**: `realtime_sync.js`  
 **용도**: 로컬 개발 데이터를 Render에 반영
 
@@ -823,19 +832,23 @@ node realtime_sync.js
 ```
 
 **기능**:
+
 - ✅ 5초마다 MySQL 변경사항 감지
 - ✅ 새로 추가된 데이터 자동 동기화
 - ✅ 삭제된 데이터 자동 제거
 
 **예시**:
+
 ```sql
 -- MySQL Workbench에서 실행
 INSERT INTO reviews (user_id, movie_title, rating, content, recommend, created_at)
 VALUES (5, '새 영화', 9, '정말 재미있어요!', '추천함', NOW());
 ```
+
 → 5초 후 Render PostgreSQL에 자동 추가 → Render 사이트에서 확인 가능
 
 #### 2. PostgreSQL → MySQL (역방향)
+
 **스크립트**: `sync_postgres_to_mysql.js`  
 **용도**: Render 사이트에서 작성한 데이터를 로컬 MySQL에 저장
 
@@ -844,15 +857,17 @@ node sync_postgres_to_mysql.js
 ```
 
 **기능**:
+
 - ✅ 10초마다 PostgreSQL 변경사항 감지
 - ✅ 사용자가 Render 사이트에서 작성한 리뷰/게시글/댓글 자동 저장
 - ✅ 삭제된 데이터 자동 제거
 
 **예시**:
+
 1. https://ai-moviereview.onrender.com 접속
 2. 로그인 후 영화 리뷰 작성: "이 영화 최고!" (평점 10)
 3. 제출
-→ 10초 후 로컬 MySQL에 자동 저장 → MySQL Workbench에서 확인 가능
+   → 10초 후 로컬 MySQL에 자동 저장 → MySQL Workbench에서 확인 가능
 
 ### 양방향 동기화 실행 (권장)
 
@@ -888,13 +903,13 @@ pm2 stop all
 
 ### 지원 기능
 
-| 작업 | MySQL → PostgreSQL | PostgreSQL → MySQL | 감지 시간 |
-|------|-------------------|-------------------|----------|
-| INSERT (추가) | ✅ | ✅ | 5-10초 |
-| DELETE (삭제) | ✅ | ✅ | 5-10초 |
-| UPDATE (수정) | ❌ | ❌ | 미지원* |
+| 작업          | MySQL → PostgreSQL | PostgreSQL → MySQL | 감지 시간 |
+| ------------- | ------------------ | ------------------ | --------- |
+| INSERT (추가) | ✅                 | ✅                 | 5-10초    |
+| DELETE (삭제) | ✅                 | ✅                 | 5-10초    |
+| UPDATE (수정) | ❌                 | ❌                 | 미지원\*  |
 
-*UPDATE는 `created_at` 기반 감지 방식이라 지원되지 않습니다. 수정이 필요하면 삭제 후 재추가하거나 양쪽 DB를 수동으로 업데이트하세요.
+\*UPDATE는 `created_at` 기반 감지 방식이라 지원되지 않습니다. 수정이 필요하면 삭제 후 재추가하거나 양쪽 DB를 수동으로 업데이트하세요.
 
 ### 동기화 주기 변경
 
@@ -915,11 +930,13 @@ REVERSE_SYNC_INTERVAL=10000
 프로젝트에 포함된 상세 가이드 문서들:
 
 ### 배포 관련
+
 - 📘 **DEPLOYMENT_GUIDE.md** - 전체 배포 프로세스 상세 가이드 (15-20분)
 - 📗 **RENDER_DEPLOY.md** - Render 플랫폼 사용법 (20-30분)
 - 📙 **DATA_SYNC_GUIDE.md** - MySQL ↔ PostgreSQL 데이터 동기화 (10-15분)
 
 ### 동기화 관련
+
 - 📕 **BIDIRECTIONAL_SYNC_GUIDE.md** - 양방향 동기화 완전 가이드
 - 📓 **REALTIME_SYNC_GUIDE.md** - 실시간 동기화 설정 및 사용법
 

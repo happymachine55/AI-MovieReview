@@ -20,39 +20,29 @@ let lastSelectedScore = null; // 선택한 평점 (1~10점)
 // ========================================================
 // � 로그인 상태 확인 및 UI 업데이트
 // ========================================================
-// 서버에서 현재 로그인 상태를 확인하고 화면에 반영
+// 로컬 세션에서 로그인 상태를 확인하고 화면에 반영
 function updateLoginStatus() {
-    fetch('/api/me') // 현재 로그인 정보 요청
-        .then(res => res.json())
-        .then(data => {
-            if (data.loggedIn) {
-                // 로그인 상태: 사용자 이름 표시, 로그아웃 버튼 표시
-                document.getElementById('username-display').textContent = data.user.username + ' 님';
-                // 프로필 이미지 표시
-                if (data.user.profile_image) {
-                    const img = document.getElementById('profile-img');
-                    img.src = data.user.profile_image;
-                    img.style.display = 'inline-block';
-                } else {
-                    const img = document.getElementById('profile-img');
-                    img.style.display = 'none';
-                }
-                document.getElementById('login-btn').style.display = 'none';
-                document.getElementById('register-btn').style.display = 'none'; // 추가
-                document.getElementById('logout-btn').style.display = 'inline';
-                window.currentUserId = data.user.id; // 전역 변수에 사용자 ID 저장
-                window.currentUsername = data.user.username; // 전역 변수에 사용자명 저장
-            } else {
-                // 로그아웃 상태: 로그인 버튼 표시
-                document.getElementById('username-display').textContent = '';
-                document.getElementById('login-btn').style.display = 'inline';
-                document.getElementById('register-btn').style.display = 'inline'; // 추가
-                document.getElementById('logout-btn').style.display = 'none';
-                window.currentUserId = null;
-                window.currentUsername = null;
-            }
-        })
-        .catch(err => console.error('로그인 상태 확인 오류:', err));
+    const userId = Session.getUserId();
+    const username = Session.getUsername();
+    
+    if (userId && username) {
+        // 로그인 상태: 사용자 이름 표시, 로그아웃 버튼 표시
+        document.getElementById('username-display').textContent = username + ' 님';
+        // TODO: 프로필 이미지는 나중에 Storage 연동 후 추가
+        document.getElementById('login-btn').style.display = 'none';
+        document.getElementById('register-btn').style.display = 'none';
+        document.getElementById('logout-btn').style.display = 'inline';
+        window.currentUserId = parseInt(userId);
+        window.currentUsername = username;
+    } else {
+        // 로그아웃 상태: 로그인 버튼 표시
+        document.getElementById('username-display').textContent = '';
+        document.getElementById('login-btn').style.display = 'inline';
+        document.getElementById('register-btn').style.display = 'inline';
+        document.getElementById('logout-btn').style.display = 'none';
+        window.currentUserId = null;
+        window.currentUsername = null;
+    }
 }
 
 // ========================================================
@@ -68,14 +58,13 @@ function login() {
         return;
     }
 
-    fetch('/api/login', {
+    fetch(API.login, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
     })
         .then(res => {
             if (!res.ok) {
-                // HTTP 상태 코드가 200번대가 아닐 때
                 return res.json().then(data => {
                     throw new Error(data.error || '로그인에 실패했습니다.');
                 });
@@ -83,9 +72,11 @@ function login() {
             return res.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.user) {
+                // 로컬 세션에 사용자 정보 저장
+                Session.setUser(data.user.id, data.user.username);
                 alert('로그인 성공!');
-                updateLoginStatus(); // ✅ 로그인 상태 업데이트
+                updateLoginStatus();
                 
                 // ✅ 로그인 후 현재 페이지 새로고침
                 if (window.currentPage === 'post-detail' && window.location.search.includes('postId=')) {
@@ -168,9 +159,15 @@ function register() {
         if (profileFile) formData.append('profile', profileFile);
 
         try {
-            const res = await fetch('/api/register', { method: 'POST', body: formData });
+            const res = await fetch(API.register, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
             const data = await res.json();
             if (res.ok && data.success) {
+                // 회원가입 성공 후 세션 저장
+                Session.setUser(data.id, username);
                 alert('회원가입 성공! 자동으로 로그인 되었습니다.');
                 modal.remove();
                 updateLoginStatus();
@@ -187,31 +184,27 @@ function register() {
 // ========================================================
 // 🚪 로그아웃 함수
 // ========================================================
-// 서버에 로그아웃 요청을 보내고 UI를 업데이트
+// 로컬 세션을 삭제하고 UI를 업데이트
 function logout() {
-    fetch('/api/logout', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-            alert('로그아웃 되었습니다.');
-            updateLoginStatus();
-        
-            // ✅ 로그아웃 후 현재 페이지 새로고침
-            if (window.currentPage === 'post-detail' && window.location.search.includes('postId=')) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const postId = urlParams.get('postId');
-                if (postId) loadPostComments(postId);
-            } else if (window.currentPage === 'movie-detail' && window.location.search.includes('movieId=')) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const movieId = urlParams.get('movieId');
-                if (movieId) {
-                    const movie = movieData.movies.find(m => m.id == movieId);
-                    if (movie) loadComments(movie.title, movie);
-                }
-            } else if (window.currentPage === 'gallery') {
-                loadBoardData();
-            }
-        })
-        .catch(err => console.error('로그아웃 오류:', err));
+    Session.clear();
+    alert('로그아웃 되었습니다.');
+    updateLoginStatus();
+
+    // ✅ 로그아웃 후 현재 페이지 새로고침
+    if (window.currentPage === 'post-detail' && window.location.search.includes('postId=')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('postId');
+        if (postId) loadPostComments(postId);
+    } else if (window.currentPage === 'movie-detail' && window.location.search.includes('movieId=')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const movieId = urlParams.get('movieId');
+        if (movieId) {
+            const movie = movieData.movies.find(m => m.id == movieId);
+            if (movie) loadComments(movie.title, movie);
+        }
+    } else if (window.currentPage === 'gallery') {
+        loadBoardData();
+    }
 }
 
 // ========================================================
@@ -397,10 +390,14 @@ function setupEventListeners() {
         }
 
         try {
-            const res = await fetch("/api/posts", {
+            const res = await fetch(API.posts, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, content })
+                body: JSON.stringify({ 
+                    user_id: window.currentUserId,
+                    title, 
+                    content 
+                })
             });
             const result = await res.json();
 
@@ -495,26 +492,33 @@ function setupEventListeners() {
         document.getElementById('applyAIReview').style.display = 'none';
 
         try {
-            const res = await fetch('/api/ai-review', {
+            const res = await fetch(API.aiReview, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ movieTitle, emotions, recommend, score })
+                body: JSON.stringify({ 
+                    user_id: window.currentUserId,
+                    movie_title: movieTitle, 
+                    user_review: `감정: ${emotions}, 추천: ${recommend}, 평점: ${score}점`
+                })
             });
             const data = await res.json();
 
-            // 라디오 버튼과 함께 3개 리뷰 렌더링
-            let html = '';
-            data.reviews.forEach((review, idx) => {
-                html += `
-                    <label class="ai-review-radio-box">
-                        <input type="radio" name="aiReviewRadio" value="${idx}" ${idx === 0 ? 'checked' : ''}>
-                        <span class="review-label">관람평 ${idx + 1}</span>
-                        <div class="review-content">${review}</div>
-                    </label>
+            // AI 리뷰 결과 표시
+            if (data.ai_review) {
+                const html = `
+                    <div class="ai-review-box">
+                        <h4>AI 생성 리뷰</h4>
+                        <p>${data.ai_review}</p>
+                        <p><strong>평점: ${data.rating || score}/10</strong></p>
+                    </div>
                 `;
-            });
-            document.getElementById('aiReviewResult').innerHTML = html;
-            document.getElementById('applyAIReview').style.display = 'inline-block';
+                document.getElementById('aiReviewResult').innerHTML = html;
+                document.getElementById('applyAIReview').style.display = 'inline-block';
+                
+                // AI 리뷰를 전역 변수에 저장
+                window.generatedAIReview = data.ai_review;
+                window.generatedRating = data.rating || score;
+            }
         } catch (e) {
             document.getElementById('aiReviewResult').innerHTML = 'AI 리뷰 생성 실패';
         }
@@ -847,7 +851,7 @@ function loadBoardData(page = 1) {
         const boardContent = document.getElementById('board-content');
         boardContent.innerHTML = `<tr><td colspan="7">불러오는 중...</td></tr>`;
 
-        fetch('/api/posts')
+        fetch(API.posts)
             .then(res => res.json())
             .then(posts => {
                 if (!posts.length) {
@@ -1201,10 +1205,16 @@ function loadBoardData(page = 1) {
     function submitReview(movieTitle, rating, content, recommend) {
         console.log('리뷰 제출:', { movieTitle, rating, content, recommend }); // 디버깅
     
-        fetch('/api/reviews', {
+        fetch(API.reviews, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movie_title: movieTitle, rating, content, recommend })
+            body: JSON.stringify({ 
+                user_id: window.currentUserId,
+                movie_title: movieTitle, 
+                rating, 
+                user_review: content, 
+                recommend 
+            })
         })
             .then(res => {
                 if (!res.ok) throw new Error('리뷰 저장 실패');
@@ -1423,10 +1433,14 @@ function loadBoardData(page = 1) {
     }
 
     function submitPost(title, content) {
-        fetch('/api/posts', {
+        fetch(API.posts, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content })
+            body: JSON.stringify({ 
+                user_id: window.currentUserId,
+                title, 
+                content 
+            })
         })
             .then(res => res.json())
             .then(data => {
@@ -1497,10 +1511,14 @@ function loadBoardData(page = 1) {
                 return;
             }
 
-            fetch('/api/comments', {
+            fetch(API.comments, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ post_id: postId, content: content }) // ✅ user_id 제거 (세션에서 가져옴)
+                body: JSON.stringify({ 
+                    user_id: window.currentUserId,
+                    post_id: postId, 
+                    content: content 
+                })
             })
                 .then(res => {
                     if (!res.ok) throw new Error('댓글 작성 실패');

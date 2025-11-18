@@ -430,10 +430,15 @@ function loadReviews(movieTitle) {
   
   // 리뷰 저장
 function submitReview(movieTitle, userId, rating, content) {
-    fetch('/api/reviews', {
+    fetch(API.reviews, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ movie_title: movieTitle, user_id: userId, rating, content })
+      body: JSON.stringify({ 
+        user_id: userId, 
+        movie_title: movieTitle, 
+        rating, 
+        content 
+      })
     })
     .then(res => res.json())
     .then(result => {

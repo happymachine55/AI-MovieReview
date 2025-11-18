@@ -1,24 +1,25 @@
-# 🎬 AI-MovieReview
+# 🎬 AI-MovieReview (Supabase Edition)
 
-영화 리뷰를 AI가 자동 생성해주는 커뮤니티 웹사이트
+영화 리뷰를 AI가 자동 생성해주는 커뮤니티 웹사이트 - **Supabase Edge Functions 버전**
 
 ---
 
 ## 👨‍🏫 프로젝트 소개
 
-사용자가 선택한 감정 키워드와 평점을 기반으로 **AI(Gemini API)**가 자동으로 영화 리뷰를 생성해주는 서비스입니다.  
-생성된 3가지 리뷰 중 마음에 드는 것을 선택하여 바로 게시할 수 있으며, 커뮤니티 기능을 통해 다른 사용자들과 소통할 수 있습니다.
+사용자가 작성한 영화 리뷰를 **AI(Google Gemini)**가 분석하여 더 풍부한 리뷰로 변환해주는 서비스입니다.  
+Supabase Edge Functions을 활용한 서버리스 아키텍처로 구현되었으며, 무료 호스팅으로 운영됩니다.
 
 ---
 
 ## ⏲️ 개발 기간
 
-- **2025.03.20(목) ~ 2025.12.06(토)**
+- **2025.03.20(목) ~ 2025.12.06(토)** - Express 버전 개발
+- **2025.01.18(토)** - Supabase Edge Functions로 마이그레이션 시작
 - ✅ AI 리뷰 자동 생성 기능 구현
-- ✅ 회원 인증 시스템 (로그인/로그아웃)
-- ✅ 커뮤니티 기능 (게시글 작성, 댓글, 삭제)
-- ✅ 본인 게시글/댓글만 삭제 가능 (권한 관리)
-- ✅ 페이지네이션 (10개씩 게시글 표시)
+- ✅ 회원 인증 시스템 (로그인/회원가입)
+- ✅ 프로필 이미지 업로드 (준비 중)
+- ✅ 커뮤니티 기능 (게시글, 댓글, 좋아요)
+- ✅ 사용자 피드백 시스템
 - ✅ 영화 검색 기능
 - ✅ 반응형 UI/UX 디자인
 
@@ -27,26 +28,24 @@
 ## 🧑‍🤝‍🧑 개발자 소개
 
 - **김원묵** : 팀장, 편집
-- **서한별** : 기획자, 백엔드/프론트엔집 개발
+- **서한별** : 기획자, 백엔드/프론트엔드 개발
 
 ---
 
 ## 💻 개발환경
 
-- **Version** : Node.js v22.14.0
+- **Runtime** : Deno (Supabase Edge Functions)
 - **IDE** : VS Code
-- **Framework** : Express.js (Node.js)
-- **Database** : 
-  - 로컬 개발: MySQL 8.0.41
-  - 프로덕션: PostgreSQL 15 (Render)
+- **Database** : Supabase PostgreSQL
+- **Storage** : Supabase Storage (준비 중)
 - **AI API** : Google Gemini 2.0-flash
-- **배포** : Render (Free Plan)
+- **배포** : Supabase (Free Plan)
 
 ---
 
 ## ⚙️ 기술 스택
 
-### Backend
+### Backend (Serverless)
 
 - **Node.js** : 서버 런타임 환경
 - **Express.js** : 웹 서버 프레임워크

@@ -421,7 +421,7 @@ function formatNumber(number) {
 
 // 리뷰 불러오기
 function loadReviews(movieTitle) {
-    fetch(`/api/reviews?movie_title=${encodeURIComponent(movieTitle)}`)
+    fetch(`${API.reviews}?movie_title=${encodeURIComponent(movieTitle)}`, { headers: getSupabaseHeaders() })
       .then(res => res.json())
         .then(reviews => {
         // 리뷰 목록 렌더링
@@ -432,7 +432,7 @@ function loadReviews(movieTitle) {
 function submitReview(movieTitle, userId, rating, content) {
     fetch(API.reviews, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getSupabaseHeaders(),
       body: JSON.stringify({ 
         user_id: userId, 
         movie_title: movieTitle, 

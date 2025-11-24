@@ -60,7 +60,7 @@ function login() {
 
     fetch(API.login, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getSupabaseHeaders(),
         body: JSON.stringify({ username, password })
     })
         .then(res => {
@@ -161,7 +161,7 @@ function register() {
         try {
             const res = await fetch(API.register, { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json' },
+                headers: getSupabaseHeaders(),
                 body: JSON.stringify({ username, password })
             });
             const data = await res.json();
@@ -392,7 +392,7 @@ function setupEventListeners() {
         try {
             const res = await fetch(API.posts, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getSupabaseHeaders(),
                 body: JSON.stringify({ 
                     user_id: window.currentUserId,
                     title, 
@@ -494,7 +494,7 @@ function setupEventListeners() {
         try {
             const res = await fetch(API.aiReview, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getSupabaseHeaders(),
                 body: JSON.stringify({ 
                     user_id: window.currentUserId,
                     movie_title: movieTitle, 
@@ -851,7 +851,7 @@ function loadBoardData(page = 1) {
         const boardContent = document.getElementById('board-content');
         boardContent.innerHTML = `<tr><td colspan="7">불러오는 중...</td></tr>`;
 
-        fetch(API.posts)
+        fetch(API.posts, { headers: getSupabaseHeaders() })
             .then(res => res.json())
             .then(posts => {
                 if (!posts.length) {
@@ -1077,7 +1077,7 @@ function loadBoardData(page = 1) {
     // 관객평(관람평) 목록 불러오기 및 총평 갱신
     function loadComments(movieTitle, movie) {
         console.log('🔍 loadComments 호출됨 - 영화:', movieTitle);
-        fetch(`/api/reviews?movie_title=${encodeURIComponent(movieTitle)}`)
+        fetch(`${API.reviews}?movie_title=${encodeURIComponent(movieTitle)}`, { headers: getSupabaseHeaders() })
             .then(res => res.json())
             .then(comments => {
                 console.log('📦 받은 리뷰 데이터:', comments);
@@ -1207,7 +1207,7 @@ function loadBoardData(page = 1) {
     
         fetch(API.reviews, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getSupabaseHeaders(),
             body: JSON.stringify({ 
                 user_id: window.currentUserId,
                 movie_title: movieTitle, 
@@ -1435,7 +1435,7 @@ function loadBoardData(page = 1) {
     function submitPost(title, content) {
         fetch(API.posts, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getSupabaseHeaders(),
             body: JSON.stringify({ 
                 user_id: window.currentUserId,
                 title, 
@@ -1465,7 +1465,7 @@ function loadBoardData(page = 1) {
         console.log('✅ 댓글 섹션 로드 시작 - postId:', postId);
 
         // --- 1. 서버에서 댓글 목록 불러와서 화면에 그리기 ---
-        fetch(`/api/comments?post_id=${postId}`)
+        fetch(`${API.comments}?post_id=${postId}`, { headers: getSupabaseHeaders() })
             .then(res => res.json())
             .then(comments => {
                 console.log('📦 받은 댓글 데이터:', comments);
@@ -1513,7 +1513,7 @@ function loadBoardData(page = 1) {
 
             fetch(API.comments, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getSupabaseHeaders(),
                 body: JSON.stringify({ 
                     user_id: window.currentUserId,
                     post_id: postId, 

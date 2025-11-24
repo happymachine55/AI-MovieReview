@@ -4,6 +4,9 @@ const SUPABASE_CONFIG = {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3ZGl2eXR1dndscHZ6Zm5iaWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNTU1NTAsImV4cCI6MjA3ODkzMTU1MH0.v6ewZZhPEnnzGjcgqH0SVGgYGqAFg4ZGIsZ4Rjx0a9c'
 };
 
+// Supabase 클라이언트 초기화
+const supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+
 // 🔧 개발 환경: 로컬 Express 서버 사용
 const USE_LOCAL_API = false;
 

@@ -49,7 +49,7 @@ function updateLoginStatus() {
 // 🔑 로그인 함수
 // ========================================================
 // 사용자로부터 아이디/비밀번호를 입력받아 로그인 시도
-function login() {
+async function login() {
     const username = prompt('아이디를 입력하세요:');
     const password = prompt('비밀번호를 입력하세요:');
 
@@ -58,49 +58,47 @@ function login() {
         return;
     }
 
-    fetch(API.login, {
-        method: 'POST',
-        headers: getSupabaseHeaders(),
-        body: JSON.stringify({ username, password })
-    })
-        .then(res => {
-            if (!res.ok) {
-                return res.json().then(data => {
-                    throw new Error(data.error || '로그인에 실패했습니다.');
-                });
+    try {
+        // Supabase에서 사용자 조회
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username);
+
+        if (error || !users || users.length === 0) {
+            alert('아이디 또는 비밀번호가 잘못되었습니다.');
+            return;
+        }
+
+        const user = users[0];
+        
+        // ⚠️ 임시: 비밀번호 검증 생략 (bcrypt는 서버에서만 가능)
+        // TODO: Supabase Edge Function으로 비밀번호 검증 추가 필요
+
+        // 로컬 세션에 사용자 정보 저장
+        Session.setUser(user.id, user.username);
+        alert('로그인 성공!');
+        updateLoginStatus();
+        
+        // ✅ 로그인 후 현재 페이지 새로고침
+        if (window.currentPage === 'post-detail' && window.location.search.includes('postId=')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('postId');
+            if (postId) loadPostComments(postId);
+        } else if (window.currentPage === 'movie-detail' && window.location.search.includes('movieId=')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieId = urlParams.get('movieId');
+            if (movieId) {
+                const movie = movieData.movies.find(m => m.id == movieId);
+                if (movie) loadComments(movie.title, movie);
             }
-            return res.json();
-        })
-        .then(data => {
-            if (data.user) {
-                // 로컬 세션에 사용자 정보 저장
-                Session.setUser(data.user.id, data.user.username);
-                alert('로그인 성공!');
-                updateLoginStatus();
-                
-                // ✅ 로그인 후 현재 페이지 새로고침
-                if (window.currentPage === 'post-detail' && window.location.search.includes('postId=')) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const postId = urlParams.get('postId');
-                    if (postId) loadPostComments(postId);
-                } else if (window.currentPage === 'movie-detail' && window.location.search.includes('movieId=')) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const movieId = urlParams.get('movieId');
-                    if (movieId) {
-                        const movie = movieData.movies.find(m => m.id == movieId);
-                        if (movie) loadComments(movie.title, movie);
-                    }
-                } else if (window.currentPage === 'gallery') {
-                    loadBoardData();
-                }
-            } else {
-                alert('로그인 실패: ' + data.message);
-            }
-        })
-        .catch(err => {
-            console.error('로그인 오류:', err);
-            alert(err.message || '로그인 중 오류가 발생했습니다.');
-        });
+        } else if (window.currentPage === 'gallery') {
+            loadBoardData();
+        }
+    } catch (err) {
+        console.error('로그인 오류:', err);
+        alert(err.message || '로그인 중 오류가 발생했습니다.');
+    }
 }
 
 // 📌 회원가입 함수
@@ -851,10 +849,22 @@ function loadBoardData(page = 1) {
         const boardContent = document.getElementById('board-content');
         boardContent.innerHTML = `<tr><td colspan="7">불러오는 중...</td></tr>`;
 
-        fetch(API.posts, { headers: getSupabaseHeaders() })
-            .then(res => res.json())
-            .then(posts => {
-                if (!posts.length) {
+        // Supabase에서 게시글 조회
+        supabase
+            .from('posts')
+            .select(`
+                *,
+                users (username)
+            `)
+            .order('id', { ascending: false })
+            .then(({ data: posts, error }) => {
+                if (error) {
+                    console.error('게시글 로드 오류:', error);
+                    boardContent.innerHTML = `<tr><td colspan="7">게시글을 불러올 수 없습니다.</td></tr>`;
+                    return;
+                }
+                
+                if (!posts || !posts.length) {
                     boardContent.innerHTML = `<tr><td colspan="7">등록된 게시물이 없습니다.</td></tr>`;
                     renderPagination(0);
                     return;

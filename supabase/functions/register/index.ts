@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,12 +55,8 @@ serve(async (req: Request) => {
       );
     }
 
-    // 비밀번호 해시 (SHA-256, 실제로는 bcrypt 권장)
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // 비밀번호 해시 (bcrypt)
+    const hashedPassword = await bcrypt.hash(password);
 
     // 사용자 생성
     const { data: newUser, error: insertError } = await supabaseClient

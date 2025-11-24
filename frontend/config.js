@@ -1,11 +1,14 @@
-// Supabase 설정
+// Supabase 설정 (프로덕션용)
 const SUPABASE_CONFIG = {
     url: 'https://iwdivytuvwlpvzfnbigs.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3ZGl2eXR1dndscHZ6Zm5iaWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMzI2ODIsImV4cCI6MjA0NzYwODY4Mn0.ey3hbGc1OiJJIUziN1IzInR5cCI6IkpXVCJ9.ey3pc3M1OiJzdXBhYmFzZSIsInJlZiI6Iml3ZGl2eXR1dndscHZ6Zm5iaWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMzI2ODIsImV4cCI6MjA0NzYwODY4Mn0'
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3ZGl2eXR1dndscHZ6Zm5iaWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNTU1NTAsImV4cCI6MjA3ODkzMTU1MH0.v6ewZZhPEnnzGjcgqH0SVGgYGqAFg4ZGIsZ4Rjx0a9c'
 };
 
+// 🔧 개발 환경: 로컬 Express 서버 사용
+const USE_LOCAL_API = false;
+
 // API 기본 URL
-const API_BASE_URL = `${SUPABASE_CONFIG.url}/functions/v1`;
+const API_BASE_URL = USE_LOCAL_API ? '/api' : `${SUPABASE_CONFIG.url}/functions/v1`;
 
 // API 엔드포인트
 const API = {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,15 +41,15 @@ serve(async (req) => {
       );
     }
 
-    // 비밀번호 검증 (Web Crypto API 사용)
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    // 실제로는 bcrypt 해시와 비교해야 하지만, 일단 간단한 검증
-    // TODO: bcrypt 호환 검증 로직 추가 필요
+    // 비밀번호 검증 (bcrypt)
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!passwordMatch) {
+      return new Response(
+        JSON.stringify({ error: '아이디 또는 비밀번호가 잘못되었습니다.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
     
     return new Response(
       JSON.stringify({ 

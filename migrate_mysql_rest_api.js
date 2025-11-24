@@ -125,6 +125,9 @@ async function migrateReviews() {
   
   for (const review of rows) {
     try {
+      // rating을 정수로 변환 (소수점이면 반올림)
+      const rating = Math.round(parseFloat(review.rating || review.score || 5));
+      
       const res = await fetch(`${API_BASE}/reviews`, {
         method: 'POST',
         headers: {
@@ -137,7 +140,7 @@ async function migrateReviews() {
           id: review.id,
           user_id: review.user_id,
           movie_title: review.movie_title,
-          rating: review.rating || review.score || 5,
+          rating: rating,
           content: review.content,
           recommend: review.recommend,
           likes_count: review.likes_count || 0,

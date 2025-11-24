@@ -44,3 +44,17 @@ const Session = {
     },
     isLoggedIn: () => !!Session.getUserId()
 };
+
+// Supabase Functions 호출용 헤더 생성 헬퍼
+function getSupabaseHeaders(includeAuth = false) {
+    const headers = {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_CONFIG.anonKey
+    };
+    
+    if (includeAuth) {
+        headers['Authorization'] = `Bearer ${SUPABASE_CONFIG.anonKey}`;
+    }
+    
+    return headers;
+}

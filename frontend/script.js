@@ -453,30 +453,31 @@ function setupEventListeners() {
         }
 
         try {
-            const res = await fetch(API.posts, {
-                method: "POST",
-                headers: getSupabaseHeaders(),
-                body: JSON.stringify({ 
-                    user_id: window.currentUserId,
-                    title, 
-                    content 
+            // Supabase 클라이언트로 직접 insert
+            const { data, error } = await supabase
+                .from('posts')
+                .insert({
+                    user_id: parseInt(window.currentUserId),
+                    title: title,
+                    content: content
                 })
-            });
-            const result = await res.json();
+                .select()
+                .single();
 
-            if (res.ok) {
-                alert("게시글이 등록되었습니다!");
-                // ✅ 폼 초기화
-                document.getElementById('write-title').value = '';
-                document.getElementById('write-content').value = '';
-                // ✅ 갤러리로 이동 & 자동 새로고침
-                switchPage('gallery');
-                loadBoardData(); // 게시글 목록 새로고침
-            } else {
-                alert("게시글 등록 실패: " + result.error);
+            if (error) {
+                throw error;
             }
+
+            alert("게시글이 등록되었습니다!");
+            // ✅ 폼 초기화
+            document.getElementById('write-title').value = '';
+            document.getElementById('write-content').value = '';
+            // ✅ 갤러리로 이동 & 자동 새로고침
+            switchPage('gallery');
+            loadBoardData(); // 게시글 목록 새로고침
         } catch (err) {
-            alert("네트워크 오류 발생: " + err.message);
+            console.error('게시글 작성 오류:', err);
+            alert("게시글 등록 실패: " + err.message);
         }
     });
 
@@ -555,34 +556,25 @@ function setupEventListeners() {
         document.getElementById('applyAIReview').style.display = 'none';
 
         try {
-            const res = await fetch(API.aiReview, {
-                method: 'POST',
-                headers: getSupabaseHeaders(),
-                body: JSON.stringify({ 
-                    user_id: window.currentUserId,
-                    movie_title: movieTitle, 
-                    user_review: `감정: ${emotions}, 추천: ${recommend}, 평점: ${score}점`
-                })
-            });
-            const data = await res.json();
-
+            // 간단한 AI 리뷰 생성 (실제로는 Edge Function 필요)
+            const aiReviewText = `${emotions.join(', ')}한 영화였습니다. ${recommend === '추천' ? '강력히 추천합니다!' : '호불호가 갈릴 수 있습니다.'} 평점 ${score}점을 주고 싶습니다.`;
+            
             // AI 리뷰 결과 표시
-            if (data.ai_review) {
-                const html = `
-                    <div class="ai-review-box">
-                        <h4>AI 생성 리뷰</h4>
-                        <p>${data.ai_review}</p>
-                        <p><strong>평점: ${data.rating || score}/10</strong></p>
-                    </div>
-                `;
-                document.getElementById('aiReviewResult').innerHTML = html;
-                document.getElementById('applyAIReview').style.display = 'inline-block';
-                
-                // AI 리뷰를 전역 변수에 저장
-                window.generatedAIReview = data.ai_review;
-                window.generatedRating = data.rating || score;
-            }
+            const html = `
+                <div class="ai-review-box">
+                    <h4>생성된 리뷰</h4>
+                    <p>${aiReviewText}</p>
+                    <p><strong>평점: ${score}/10</strong></p>
+                </div>
+            `;
+            document.getElementById('aiReviewResult').innerHTML = html;
+            document.getElementById('applyAIReview').style.display = 'inline-block';
+            
+            // AI 리뷰를 전역 변수에 저장
+            window.generatedAIReview = aiReviewText;
+            window.generatedRating = score;
         } catch (e) {
+            console.error('AI 리뷰 생성 오류:', e);
             document.getElementById('aiReviewResult').innerHTML = 'AI 리뷰 생성 실패';
         }
     };
@@ -1277,46 +1269,47 @@ function loadBoardData(page = 1) {
     }
 
     // 리뷰 저장
-    function submitReview(movieTitle, rating, content, recommend) {
-        console.log('리뷰 제출:', { movieTitle, rating, content, recommend }); // 디버깅
+    async function submitReview(movieTitle, rating, content, recommend) {
+        console.log('리뷰 제출:', { movieTitle, rating, content, recommend });
     
-        fetch(API.reviews, {
-            method: 'POST',
-            headers: getSupabaseHeaders(),
-            body: JSON.stringify({ 
-                user_id: window.currentUserId,
-                movie_title: movieTitle, 
-                rating, 
-                user_review: content, 
-                recommend 
-            })
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('리뷰 저장 실패');
-                return res.json();
-            })
-            .then(result => {
-                console.log('✅ 리뷰 저장 성공:', result);
-                alert('리뷰가 등록되었습니다!');
-            
-                // ✅ 리뷰 목록 먼저 다시 로드
-                const movie = movieData.movies.find(m => m.title === movieTitle);
-                console.log('🔄 리뷰 목록 갱신 시작...');
-                loadComments(movieTitle, movie);
-            
-                // ✅ 폼 초기화는 잠시 뒤에
-                setTimeout(() => {
-                    document.getElementById('commentForm').style.display = 'none';
-                    document.getElementById('commentWriteButton').style.display = 'block';
-                    document.getElementById('commentText').value = '';
-                    renderStarRating(0);
-                    console.log('🧹 폼 초기화 완료');
-                }, 500);
-            })
-            .catch(err => {
-                console.error('리뷰 저장 오류:', err);
-                alert('리뷰 저장 실패: ' + err.message);
-            });
+        try {
+            // Supabase 클라이언트로 직접 insert
+            const { data, error } = await supabase
+                .from('reviews')
+                .insert({
+                    user_id: parseInt(window.currentUserId),
+                    movie_title: movieTitle,
+                    rating: parseInt(rating),
+                    user_review: content,
+                    recommend: recommend
+                })
+                .select()
+                .single();
+
+            if (error) {
+                throw error;
+            }
+
+            console.log('✅ 리뷰 저장 성공:', data);
+            alert('리뷰가 등록되었습니다!');
+        
+            // ✅ 리뷰 목록 먼저 다시 로드
+            const movie = movieData.movies.find(m => m.title === movieTitle);
+            console.log('🔄 리뷰 목록 갱신 시작...');
+            loadComments(movieTitle, movie);
+        
+            // ✅ 폼 초기화는 잠시 뒤에
+            setTimeout(() => {
+                document.getElementById('commentForm').style.display = 'none';
+                document.getElementById('commentWriteButton').style.display = 'block';
+                document.getElementById('commentText').value = '';
+                renderStarRating(0);
+                console.log('🧹 폼 초기화 완료');
+            }, 500);
+        } catch (err) {
+            console.error('리뷰 저장 오류:', err);
+            alert('리뷰 저장 실패: ' + err.message);
+        }
     }
 
 
@@ -1507,22 +1500,28 @@ function loadBoardData(page = 1) {
         });
     }
 
-    function submitPost(title, content) {
-        fetch(API.posts, {
-            method: 'POST',
-            headers: getSupabaseHeaders(),
-            body: JSON.stringify({ 
-                user_id: window.currentUserId,
-                title, 
-                content 
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                alert('게시글이 등록되었습니다!');
-                window.location.reload();
-            })
-            .catch(err => alert('오류: ' + err));
+    async function submitPost(title, content) {
+        try {
+            const { data, error } = await supabase
+                .from('posts')
+                .insert({
+                    user_id: parseInt(window.currentUserId),
+                    title: title,
+                    content: content
+                })
+                .select()
+                .single();
+
+            if (error) {
+                throw error;
+            }
+
+            alert('게시글이 등록되었습니다!');
+            window.location.reload();
+        } catch (err) {
+            console.error('게시글 작성 오류:', err);
+            alert('오류: ' + err.message);
+        }
     }
 
     // 댓글 불러오기, 작성, 삭제 기능 함수 (새로 추가 또는 교체)
@@ -1539,10 +1538,21 @@ function loadBoardData(page = 1) {
 
         console.log('✅ 댓글 섹션 로드 시작 - postId:', postId);
 
-        // --- 1. 서버에서 댓글 목록 불러와서 화면에 그리기 ---
-        fetch(`${API.comments}?post_id=${postId}`, { headers: getSupabaseHeaders() })
-            .then(res => res.json())
-            .then(comments => {
+        // --- 1. Supabase에서 댓글 목록 불러와서 화면에 그리기 ---
+        supabase
+            .from('comments')
+            .select(`
+                *,
+                users (username)
+            `)
+            .eq('post_id', parseInt(postId))
+            .order('created_at', { ascending: true })
+            .then(({ data: comments, error }) => {
+                if (error) {
+                    console.error('댓글 로딩 오류:', error);
+                    return;
+                }
+
                 console.log('📦 받은 댓글 데이터:', comments);
                 commentsList.innerHTML = ''; // 기존 댓글 목록 초기화
                 if (comments.length === 0) {
@@ -1550,7 +1560,8 @@ function loadBoardData(page = 1) {
                 } else {
                     comments.forEach(comment => {
                         // ✅ 본인이 작성한 리뷰인지 확인 (username 비교)
-                        const isOwner = window.currentUsername && window.currentUsername === comment.username;
+                        const username = comment.users?.username || '익명';
+                        const isOwner = window.currentUsername && window.currentUsername === username;
                         const deleteBtnHtml = isOwner
                             ? `<button class="comment-delete-btn" data-id="${comment.id}" style="color: white; background: #d9230f; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;">삭제</button>`
                             : '';
@@ -1559,7 +1570,7 @@ function loadBoardData(page = 1) {
                         commentEl.className = 'comment-item';
                         commentEl.innerHTML = `
                         <div class="comment-meta">
-                            <span class="comment-author">${comment.username || '익명'}</span>
+                            <span class="comment-author">${username}</span>
                             <span class="comment-date">${new Date(comment.created_at).toLocaleString('ko-KR')}</span>
                         </div>
                         <p class="comment-content">${comment.content}</p>
@@ -1586,25 +1597,24 @@ function loadBoardData(page = 1) {
                 return;
             }
 
-            fetch(API.comments, {
-                method: 'POST',
-                headers: getSupabaseHeaders(),
-                body: JSON.stringify({ 
-                    user_id: window.currentUserId,
-                    post_id: postId, 
-                    content: content 
+            // Supabase 클라이언트로 직접 insert
+            supabase
+                .from('comments')
+                .insert({
+                    user_id: parseInt(window.currentUserId),
+                    post_id: parseInt(postId),
+                    content: content
                 })
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error('댓글 작성 실패');
-                    return res.json();
-                })
-                .then((result) => {
-                    if (result.id) {
-                        alert('댓글이 등록되었습니다!');
-                        commentInput.value = ''; // 입력창 비우기
-                        loadPostComments(postId); // ✅ 댓글 목록 새로고침해서 바로 반영!
+                .select()
+                .single()
+                .then(({ data, error }) => {
+                    if (error) {
+                        throw error;
                     }
+                    
+                    alert('댓글이 등록되었습니다!');
+                    commentInput.value = ''; // 입력창 비우기
+                    loadPostComments(postId); // ✅ 댓글 목록 새로고침해서 바로 반영!
                 })
                 .catch(err => {
                     console.error('댓글 작성 오류:', err);
@@ -1620,17 +1630,23 @@ function loadBoardData(page = 1) {
                 if (confirm('정말 이 댓글을 삭제하시겠습니까?')) {
                     const commentId = event.target.dataset.id; // ✅ data-id로 통일
 
-                    fetch(`/api/comments/${commentId}`, { method: 'DELETE' })
-                        .then(res => res.json())
-                        .then(result => {
-                            if (result.success) {
-                                alert('댓글이 삭제되었습니다!');
-                                loadPostComments(postId); // ✅ 댓글 목록 새로고침해서 바로 반영!
-                            } else {
-                                alert('삭제 실패: ' + (result.error || '권한이 없습니다.'));
+                    // Supabase 클라이언트로 직접 delete
+                    supabase
+                        .from('comments')
+                        .delete()
+                        .eq('id', parseInt(commentId))
+                        .then(({ data, error }) => {
+                            if (error) {
+                                throw error;
                             }
+                            
+                            alert('댓글이 삭제되었습니다!');
+                            loadPostComments(postId); // ✅ 댓글 목록 새로고침해서 바로 반영!
                         })
-                        .catch(err => alert('서버 오류: ' + err.message));
+                        .catch(err => {
+                            console.error('댓글 삭제 오류:', err);
+                            alert('서버 오류: ' + err.message);
+                        });
                 }
             }
         };

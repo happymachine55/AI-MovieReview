@@ -429,21 +429,28 @@ function loadReviews(movieTitle) {
   }
   
   // 리뷰 저장
-function submitReview(movieTitle, userId, rating, content) {
-    fetch(API.reviews, {
-      method: 'POST',
-      headers: getSupabaseHeaders(),
-      body: JSON.stringify({ 
-        user_id: userId, 
-        movie_title: movieTitle, 
-        rating, 
-        content 
-      })
-    })
-    .then(res => res.json())
-    .then(result => {
-      loadReviews(movieTitle);
-    });
+async function submitReview(movieTitle, userId, rating, content) {
+    try {
+        const { data, error } = await supabase
+            .from('reviews')
+            .insert({
+                user_id: parseInt(userId),
+                movie_title: movieTitle,
+                rating: parseInt(rating),
+                user_review: content
+            })
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        loadReviews(movieTitle);
+    } catch (err) {
+        console.error('리뷰 저장 오류:', err);
+        alert('리뷰 저장 실패: ' + err.message);
+    }
 }
   
 

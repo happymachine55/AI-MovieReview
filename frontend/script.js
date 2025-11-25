@@ -79,11 +79,23 @@ async function login() {
 
         const user = users[0];
         
-        // ⚠️ 임시: 비밀번호 검증 생략 (bcrypt는 서버에서만 가능)
-        // TODO: Supabase Edge Function으로 비밀번호 검증 추가 필요
+        // 비밀번호 해시 검증 (SHA-256)
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password + username);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        if (user.password !== hashedPassword) {
+            alert('아이디 또는 비밀번호가 잘못되었습니다.');
+            return;
+        }
 
         // 로컬 세션에 사용자 정보 저장
         Session.setUser(user.id, user.username);
+        if (user.profile_image) {
+            localStorage.setItem('profile_image', user.profile_image);
+        }
         alert('로그인 성공!');
         updateLoginStatus();
         
@@ -171,37 +183,62 @@ function register() {
         }
 
         try {
-            // 프로필 이미지를 Base64로 변환 (있으면)
+            // 1️⃣ 중복 아이디 체크
+            const { data: existingUsers, error: checkError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('username', username);
+            
+            if (checkError) {
+                throw new Error('아이디 확인 실패: ' + checkError.message);
+            }
+            
+            if (existingUsers && existingUsers.length > 0) {
+                alert('이미 존재하는 아이디입니다.');
+                return;
+            }
+
+            // 2️⃣ 프로필 이미지를 Base64로 변환 (있으면)
             let profileImageData = null;
             if (profileFile && typeof uploadProfileImage === 'function') {
                 profileImageData = await uploadProfileImage(profileFile);
             }
 
-            const res = await fetch(API.register, { 
-                method: 'POST', 
-                headers: getSupabaseHeaders(),
-                body: JSON.stringify({ 
-                    username, 
-                    password,
-                    profile_image: profileImageData 
-                })
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                // 회원가입 성공 후 세션 저장
-                Session.setUser(data.id, username);
-                if (data.profile_image) {
-                    localStorage.setItem('profile_image', data.profile_image);
-                }
-                alert('회원가입 성공! 자동으로 로그인 되었습니다.');
-                modal.remove();
-                updateLoginStatus();
-            } else {
-                alert('회원가입 실패: ' + (data.error || JSON.stringify(data)));
+            // 3️⃣ 간단한 비밀번호 해시 (SHA-256)
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + username); // salt로 username 사용
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // 4️⃣ Supabase에 직접 insert
+            const { data: newUser, error: insertError } = await supabase
+                .from('users')
+                .insert([{
+                    username: username,
+                    password: hashedPassword,
+                    profile_image: profileImageData
+                }])
+                .select()
+                .single();
+
+            if (insertError) {
+                throw new Error('회원가입 실패: ' + insertError.message);
             }
+
+            // 5️⃣ 회원가입 성공 후 세션 저장
+            Session.setUser(newUser.id, username);
+            if (newUser.profile_image) {
+                localStorage.setItem('profile_image', newUser.profile_image);
+            }
+            
+            alert('회원가입 성공! 자동으로 로그인 되었습니다.');
+            modal.remove();
+            updateLoginStatus();
+            
         } catch (err) {
             console.error('회원가입 오류:', err);
-            alert('서버 오류: ' + err.message);
+            alert('회원가입 오류: ' + err.message);
         }
     });
 }

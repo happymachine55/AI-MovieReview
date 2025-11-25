@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>리다이렉팅...</title>
+    <script>
+        // GitHub Pages SPA 라우팅 해결
+        // URL 쿼리 파라미터를 유지하면서 루트로 리다이렉트
+        const query = window.location.search;
+        window.location.replace('/' + (query || ''));
+    </script>
+</head>
+<body>
+    페이지를 불러오는 중...
+</body>
+</html>

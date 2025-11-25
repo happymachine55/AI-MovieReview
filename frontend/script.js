@@ -28,7 +28,13 @@ function updateLoginStatus() {
     if (userId && username) {
         // 로그인 상태: 사용자 이름 표시, 로그아웃 버튼 표시
         document.getElementById('username-display').textContent = username + ' 님';
-        // TODO: 프로필 이미지는 나중에 Storage 연동 후 추가
+        
+        // 프로필 이미지 표시
+        const profileImage = localStorage.getItem('profile_image');
+        if (profileImage && typeof displayProfileImage === 'function') {
+            displayProfileImage(profileImage);
+        }
+        
         document.getElementById('login-btn').style.display = 'none';
         document.getElementById('register-btn').style.display = 'none';
         document.getElementById('logout-btn').style.display = 'inline';
@@ -37,6 +43,7 @@ function updateLoginStatus() {
     } else {
         // 로그아웃 상태: 로그인 버튼 표시
         document.getElementById('username-display').textContent = '';
+        document.getElementById('profile-img').style.display = 'none';
         document.getElementById('login-btn').style.display = 'inline';
         document.getElementById('register-btn').style.display = 'inline';
         document.getElementById('logout-btn').style.display = 'none';
@@ -151,21 +158,29 @@ function register() {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('username', username);
-        formData.append('password', password);
-        if (profileFile) formData.append('profile', profileFile);
-
         try {
+            // 프로필 이미지를 Base64로 변환 (있으면)
+            let profileImageData = null;
+            if (profileFile && typeof uploadProfileImage === 'function') {
+                profileImageData = await uploadProfileImage(profileFile);
+            }
+
             const res = await fetch(API.register, { 
                 method: 'POST', 
                 headers: getSupabaseHeaders(),
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ 
+                    username, 
+                    password,
+                    profile_image: profileImageData 
+                })
             });
             const data = await res.json();
             if (res.ok && data.success) {
                 // 회원가입 성공 후 세션 저장
                 Session.setUser(data.id, username);
+                if (data.profile_image) {
+                    localStorage.setItem('profile_image', data.profile_image);
+                }
                 alert('회원가입 성공! 자동으로 로그인 되었습니다.');
                 modal.remove();
                 updateLoginStatus();
@@ -173,6 +188,7 @@ function register() {
                 alert('회원가입 실패: ' + (data.error || JSON.stringify(data)));
             }
         } catch (err) {
+            console.error('회원가입 오류:', err);
             alert('서버 오류: ' + err.message);
         }
     });

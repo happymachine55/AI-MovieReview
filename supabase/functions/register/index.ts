@@ -18,7 +18,7 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { username, password, profile } = await req.json();
+    const { username, password, profile_image } = await req.json();
     
     if (!username || !password) {
       return new Response(
@@ -64,7 +64,7 @@ serve(async (req: Request) => {
       .insert({
         username,
         password: hashedPassword,
-        profile_image: profile || null,
+        profile_image: profile_image || null,
       })
       .select()
       .single();
@@ -79,12 +79,9 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
+        id: newUser.id,
         message: '회원가입이 완료되었습니다.',
-        user: {
-          id: newUser.id,
-          username: newUser.username,
-          profile_image: newUser.profile_image
-        }
+        profile_image: newUser.profile_image
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

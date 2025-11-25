@@ -127,13 +127,25 @@ function register() {
     modal.style.zIndex = '9999';
 
     modal.innerHTML = `
-        <div style="background:#fff;padding:20px;border-radius:8px;max-width:420px;width:100%;">
-            <h3>회원가입</h3>
-            <div style="margin-bottom:8px;"><input id="reg-username" placeholder="아이디" style="width:100%;padding:8px;"></div>
-            <div style="margin-bottom:8px;"><input id="reg-password" type="password" placeholder="비밀번호" style="width:100%;padding:8px;"></div>
-            <div style="margin-bottom:8px;"><input id="reg-password-confirm" type="password" placeholder="비밀번호 확인" style="width:100%;padding:8px;"></div>
-            <div style="margin-bottom:8px;"><label>프로필 이미지 (선택)</label><input id="reg-profile" type="file" accept="image/*" style="width:100%;"></div>
-            <div style="text-align:right;margin-top:12px;"><button id="reg-cancel">취소</button> <button id="reg-submit">가입</button></div>
+        <div class="register-modal-content">
+            <h3 style="margin-top:0;margin-bottom:24px;color:#333;font-size:24px;text-align:center;">회원가입</h3>
+            <div class="form-group">
+                <input id="reg-username" type="text" placeholder="아이디" class="register-input">
+            </div>
+            <div class="form-group">
+                <input id="reg-password" type="password" placeholder="비밀번호" class="register-input">
+            </div>
+            <div class="form-group">
+                <input id="reg-password-confirm" type="password" placeholder="비밀번호 확인" class="register-input">
+            </div>
+            <div class="form-group">
+                <label style="display:block;margin-bottom:8px;color:#555;font-size:14px;">프로필 이미지 (선택)</label>
+                <input id="reg-profile" type="file" accept="image/*" class="register-file-input">
+            </div>
+            <div class="register-button-group">
+                <button id="reg-cancel" class="register-btn register-btn-cancel">취소</button>
+                <button id="reg-submit" class="register-btn register-btn-submit">가입</button>
+            </div>
         </div>
     `;
 

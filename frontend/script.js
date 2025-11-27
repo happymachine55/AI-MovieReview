@@ -913,7 +913,7 @@ function loadBoardData(page = 1) {
                 *,
                 users (username)
             `)
-            .order('id', { ascending: false })
+            .order('created_at', { ascending: false })
             .then(({ data: posts, error }) => {
                 if (error) {
                     console.error('게시글 로드 오류:', error);
@@ -1142,23 +1142,43 @@ function loadBoardData(page = 1) {
     }
 
     // 관객평(관람평) 목록 불러오기 및 총평 갱신
-    function loadComments(movieTitle, movie) {
+    async function loadComments(movieTitle, movie) {
         console.log('🔍 loadComments 호출됨 - 영화:', movieTitle);
-        fetch(`${API.reviews}?movie_title=${encodeURIComponent(movieTitle)}`, { headers: getSupabaseHeaders() })
-            .then(res => res.json())
-            .then(comments => {
-                console.log('📦 받은 리뷰 데이터:', comments);
-                const commentsList = document.getElementById('commentsList');
-                console.log('📍 commentsList 요소:', commentsList);
-                commentsList.innerHTML = '';
+        
+        try {
+            // Supabase 클라이언트로 직접 조회
+            const { data: comments, error } = await supabase
+                .from('reviews')
+                .select(`
+                    *,
+                    users (username)
+                `)
+                .eq('movie_title', movieTitle)
+                .order('created_at', { ascending: false });
             
-                // ✅ 리뷰가 없으면 안내 메시지 표시
-                if (comments.length === 0) {
-                    console.log('⚠️ 리뷰가 없음 - 안내 메시지 표시');
-                    commentsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">아직 작성된 관람평이 없습니다. 첫 번째 관람평을 작성해보세요!</p>';
-                } else {
-                    console.log('✅ 리뷰 개수:', comments.length);
-                    comments.forEach(comment => {
+            if (error) {
+                console.error('리뷰 로드 오류:', error);
+                return;
+            }
+            
+            // username을 comments 객체에 직접 설정
+            const commentsWithUsername = comments.map(comment => ({
+                ...comment,
+                username: comment.users?.username || '익명'
+            }));
+            
+            console.log('📦 받은 리뷰 데이터:', commentsWithUsername);
+            const commentsList = document.getElementById('commentsList');
+            console.log('📍 commentsList 요소:', commentsList);
+            commentsList.innerHTML = '';
+        
+            // ✅ 리뷰가 없으면 안내 메시지 표시
+            if (commentsWithUsername.length === 0) {
+                console.log('⚠️ 리뷰가 없음 - 안내 메시지 표시');
+                commentsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">아직 작성된 관람평이 없습니다. 첫 번째 관람평을 작성해보세요!</p>';
+            } else {
+                console.log('✅ 리뷰 개수:', commentsWithUsername.length);
+                commentsWithUsername.forEach(comment => {
                         // ✅ 본인이 작성한 댓글인지 확인 (username 비교)
                         const isOwner = window.currentUsername && window.currentUsername === comment.username;
                         const deleteBtnHtml = isOwner
@@ -1190,50 +1210,54 @@ function loadBoardData(page = 1) {
                     });
                 }
             
-                document.getElementById('commentCount').textContent = comments.length;
+            document.getElementById('commentCount').textContent = commentsWithUsername.length;
 
-                // ✅ 좋아요/싫어요 버튼 상태 불러오기 및 이벤트 연결
-                loadReviewLikeStates(comments);
-                attachReviewLikeEvents();
+            // ✅ 좋아요/싫어요 버튼 상태 불러오기 및 이벤트 연결
+            loadReviewLikeStates(commentsWithUsername);
+            attachReviewLikeEvents();
 
-                // 1. 관객평(관람평 평균) 계산
-                let audienceScore = '-';
-                if (comments.length > 0) {
-                    const sum = comments.reduce((acc, c) => acc + Number(c.rating), 0);
-                    audienceScore = (sum / comments.length).toFixed(1) + '/10';
-                } else {
-                    // 관객평 없으면 movie.audience 사용
-                    // 관객평평 없으면 movie.js의 값 사용
-                    // movie 객체를 인자로 넘기는 게 더 안전
-                    const movie = movieData.movies.find(m => m.title === movieTitle);
-                    audienceScore = movie ? movie.audience : '-';
-                }
-                document.getElementById('audienceScore').textContent = audienceScore;
-                // 2. 총평 계산 및 UI 반영
-                const movie = movieData.movies.find(m => m.title === movieTitle);
-                const totalScore = getTotalScore(audienceScore, movie.reviewer, comments);
-                document.getElementById('totalScore').textContent = totalScore;
+            // 1. 관객평(관람평 평균) 계산
+            let audienceScore = '-';
+            if (commentsWithUsername.length > 0) {
+                const sum = commentsWithUsername.reduce((acc, c) => acc + Number(c.rating), 0);
+                audienceScore = (sum / commentsWithUsername.length).toFixed(1) + '/10';
+            } else {
+                // 관객평 없으면 movie.audience 사용
+                const foundMovie = movieData.movies.find(m => m.title === movieTitle);
+                audienceScore = foundMovie ? foundMovie.audience : '-';
+            }
+            document.getElementById('audienceScore').textContent = audienceScore;
+            
+            // 2. 총평 계산 및 UI 반영
+            const totalScore = getTotalScore(audienceScore, movie.reviewer, commentsWithUsername);
+            document.getElementById('totalScore').textContent = totalScore;
 
-                // 삭제 버튼 이벤트 연결
-                document.querySelectorAll('.delete-comment').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const reviewId = this.dataset.id; // ✅ data-id로 통일
-                        if (confirm('정말 삭제하시겠습니까?')) {
-                            fetch(`/api/reviews/${reviewId}`, { method: 'DELETE' })
-                                .then(res => res.json())
-                                .then(result => {
-                                    if (result.success) {
-                                        alert('리뷰가 삭제되었습니다!');
-                                        loadComments(movieTitle, movie);
-                                    } else {
-                                        alert('삭제 실패: ' + (result.error || '권한이 없습니다.'));
-                                    }
-                                })
-                                .catch(err => alert('서버 오류: ' + err.message));
+            // 삭제 버튼 이벤트 연결
+            document.querySelectorAll('.delete-comment').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const reviewId = this.dataset.id;
+                    if (confirm('정말 삭제하시겠습니까?')) {
+                        try {
+                            const { error } = await supabase
+                                .from('reviews')
+                                .delete()
+                                .eq('id', reviewId)
+                                .eq('user_id', window.currentUserId);
+                            
+                            if (error) throw error;
+                            
+                            alert('리뷰가 삭제되었습니다!');
+                            loadComments(movieTitle, movie);
+                        } catch (err) {
+                            console.error('삭제 오류:', err);
+                            alert('삭제 실패: ' + err.message);
                         }
-                    });
+                    }
                 });
             });
+        } catch (err) {
+            console.error('loadComments 오류:', err);
+        }
     }
 
     // 총평 계산 함수 (리뷰 수 많을수록 영향력 증가)
@@ -1280,7 +1304,7 @@ function loadBoardData(page = 1) {
                     user_id: parseInt(window.currentUserId),
                     movie_title: movieTitle,
                     rating: parseInt(rating),
-                    user_review: content,
+                    content: content,
                     recommend: recommend
                 })
                 .select()

@@ -570,7 +570,10 @@ function setupEventListeners() {
             // Supabase Edge Function 호출 (서버에서 Gemini 호출)
             const res = await fetch(API.aiReview, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+                },
                 body: JSON.stringify({
                     user_id: parseInt(Session.getUserId() || '0'),
                     movie_title: movieTitle,

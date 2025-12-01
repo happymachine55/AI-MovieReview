@@ -1393,7 +1393,79 @@ button {
 /* 📝 AI 리뷰 결과물 표시 */
 /* ========================================================= */
 
-/* 리뷰 결과 박스 */
+/* AI 리뷰 옵션 컨테이너 */
+.ai-review-options {
+    margin-top: 20px;
+}
+
+.ai-review-options h4 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* AI 리뷰 선택 박스 */
+.ai-review-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 라디오 버튼 스타일 */
+.ai-review-box input[type="radio"] {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #2e3191; /* 남색 라디오 버튼 */
+}
+
+/* 라디오 버튼 레이블 */
+.ai-review-box label {
+    flex: 1;
+    cursor: pointer;
+}
+
+/* 리뷰 스타일 강조 (감정적, 분석적 등) */
+.ai-review-box strong {
+    color: #2e3191;
+    font-size: 15px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* 리뷰 내용 텍스트 */
+.ai-review-box p {
+    margin: 0;
+    line-height: 1.6;
+    color: #333;
+    font-size: 14px;
+}
+
+/* 마우스 오버 효과 */
+.ai-review-box:hover {
+    border-color: #2e3191;
+    background: #f8f9ff;
+    box-shadow: 0 4px 8px rgba(46, 49, 145, 0.1);
+    transform: translateY(-2px);
+}
+
+/* 선택된 리뷰 박스 강조 */
+.ai-review-box:has(input[type="radio"]:checked) {
+    border: 2px solid #2e3191;
+    background: #eef0fb;
+    box-shadow: 0 4px 12px rgba(46, 49, 145, 0.2);
+}
+
+/* 리뷰 결과 박스 (구형 - 호환성 유지) */
 .review-box {
     border: 1px solid #ddd;
     padding: 12px;

@@ -85,6 +85,8 @@ DROP POLICY IF EXISTS "Allow users to delete their own reviews" ON public.review
 CREATE POLICY "Allow public to read reviews"
 ON public.reviews FOR SELECT TO public USING (true);
 
+DROP POLICY IF EXISTS "Allow users to update reviews" ON public.reviews;
+
 CREATE POLICY "Allow authenticated to insert reviews"
 ON public.reviews FOR INSERT TO public WITH CHECK (true);
 
@@ -105,6 +107,8 @@ DROP POLICY IF EXISTS "Allow users to delete their own posts" ON public.posts;
 CREATE POLICY "Allow public to read posts"
 ON public.posts FOR SELECT TO public USING (true);
 
+DROP POLICY IF EXISTS "Allow users to update posts" ON public.posts;
+
 CREATE POLICY "Allow authenticated to insert posts"
 ON public.posts FOR INSERT TO public WITH CHECK (true);
 
@@ -124,6 +128,8 @@ DROP POLICY IF EXISTS "Allow users to delete their own comments" ON public.comme
 
 CREATE POLICY "Allow public to read comments"
 ON public.comments FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "Allow users to update comments" ON public.comments;
 
 CREATE POLICY "Allow authenticated to insert comments"
 ON public.comments FOR INSERT TO public WITH CHECK (true);

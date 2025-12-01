@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    profile_image VARCHAR(255),
+    profile_image TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

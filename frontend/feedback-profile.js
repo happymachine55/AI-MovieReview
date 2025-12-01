@@ -122,7 +122,7 @@ function displayProfileImage(profileImageUrl) {
 }
 
 // 프로필 이미지 업로드 (회원가입 시)
-async function uploadProfileImage(file) {
+async function uploadProfileImage(file, userId = null) {
     if (!file) return null;
 
     // 파일 크기 체크 (5MB 제한)
@@ -140,15 +140,13 @@ async function uploadProfileImage(file) {
     try {
         // Supabase Storage에 업로드
         const bucket = 'profiles';
-        const userId = Session.getUserId();
-        if (!userId) {
-            alert('로그인이 필요합니다.');
-            return null;
-        }
-
+        
+        // 회원가입 시에는 userId가 없으므로 임시 경로 사용
+        const userPath = userId || `temp_${Date.now()}`;
+        
         // 고유 파일 경로 구성: profiles/{userId}/profile_{timestamp}.{ext}
         const ext = file.type.includes('png') ? 'png' : (file.type.includes('jpeg') ? 'jpg' : 'webp');
-        const path = `${userId}/profile_${Date.now()}.${ext}`;
+        const path = `${userPath}/profile_${Date.now()}.${ext}`;
 
         const { data, error } = await supabase.storage
             .from(bucket)

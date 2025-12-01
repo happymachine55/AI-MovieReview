@@ -198,30 +198,20 @@ function register() {
                 return;
             }
 
-            // 2️⃣ 프로필 이미지를 Base64로 변환 (있으면)
-            let profileImageData = null;
-            if (profileFile && typeof uploadProfileImage === 'function') {
-                const uploadedUrl = await uploadProfileImage(profileFile);
-                if (uploadedUrl) {
-                    profileImageData = uploadedUrl;
-                    localStorage.setItem('profile_image', uploadedUrl);
-                }
-            }
-
-            // 3️⃣ 간단한 비밀번호 해시 (SHA-256)
+            // 2️⃣ 간단한 비밀번호 해시 (SHA-256)
             const encoder = new TextEncoder();
             const data = encoder.encode(password + username); // salt로 username 사용
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-            // 4️⃣ Supabase에 직접 insert
+            // 3️⃣ Supabase에 먼저 사용자 생성 (프로필 이미지 없이)
             const { data: newUser, error: insertError } = await supabase
                 .from('users')
                 .insert([{
                     username: username,
                     password: hashedPassword,
-                    profile_image: profileImageData
+                    profile_image: null
                 }])
                 .select()
                 .single();
@@ -230,10 +220,27 @@ function register() {
                 throw new Error('회원가입 실패: ' + insertError.message);
             }
 
+            // 4️⃣ 프로필 이미지 업로드 (userId와 함께)
+            let profileImageData = null;
+            if (profileFile && typeof uploadProfileImage === 'function') {
+                const uploadedUrl = await uploadProfileImage(profileFile, newUser.id);
+                if (uploadedUrl) {
+                    profileImageData = uploadedUrl;
+                    
+                    // DB 업데이트
+                    await supabase
+                        .from('users')
+                        .update({ profile_image: uploadedUrl })
+                        .eq('id', newUser.id);
+                    
+                    localStorage.setItem('profile_image', uploadedUrl);
+                }
+            }
+
             // 5️⃣ 회원가입 성공 후 세션 저장
             Session.setUser(newUser.id, username);
-            if (newUser.profile_image) {
-                localStorage.setItem('profile_image', newUser.profile_image);
+            if (profileImageData) {
+                localStorage.setItem('profile_image', profileImageData);
             }
             
             alert('회원가입 성공! 자동으로 로그인 되었습니다.');

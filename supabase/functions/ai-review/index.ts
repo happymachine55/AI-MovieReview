@@ -21,8 +21,8 @@ serve(async (req: Request) => {
 
   try {
     if (req.method === 'POST') {
-      const { user_id, movie_title, user_review } = await req.json();
-      
+      const { user_id, movie_title, user_review, emotions, score, recommend } = await req.json();
+
       if (!user_id) {
         return new Response(
           JSON.stringify({ error: '로그인이 필요합니다.' }),
@@ -30,70 +30,61 @@ serve(async (req: Request) => {
         );
       }
 
-      if (!movie_title || !user_review) {
+      if (!movie_title) {
         return new Response(
-          JSON.stringify({ error: '영화 제목과 리뷰를 입력해주세요.' }),
+          JSON.stringify({ error: '영화 제목이 필요합니다.' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
 
-      // Gemini API 호출
-      const prompt = `다음은 영화 "${movie_title}"에 대한 사용자의 리뷰입니다:\n\n"${user_review}"\n\n이 리뷰를 분석하여 더 풍부하고 전문적인 리뷰를 작성해주세요. 감정, 장르, 연출, 연기, 스토리 등을 평가하고 별점(1-5점)을 제시해주세요. 응답은 JSON 형식으로 다음과 같이 작성해주세요:\n\n{"ai_review": "AI가 생성한 리뷰 내용", "rating": 4.5}`;
+      // prompt 구성: 3가지 스타일의 리뷰와 JSON 응답 요구
+      const prompt = `영화 "${movie_title}"에 대한 관람평을 3가지 다른 스타일로 작성해줘.
+사용자 입력:
+- 감정 키워드: ${(emotions?.join?.(', ') || '')}
+- 평점: ${score ?? ''}/10
+- 추천 여부: ${recommend ?? ''}
+
+요구사항:
+1) 감정적 스타일 (150~200자)
+2) 분석적 스타일 (150~200자)
+3) 한줄평 스타일 (50~100자)
+
+반드시 아래 JSON 포맷으로만 답해. 다른 설명 금지.
+{
+  "reviews": [
+    {"style": "감정적", "content": "..."},
+    {"style": "분석적", "content": "..."},
+    {"style": "한줄평", "content": "..."}
+  ]
+}`;
 
       const geminiResponse = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }]
-        })
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       });
 
       if (!geminiResponse.ok) {
-        throw new Error('Gemini API 호출 실패');
+        const text = await geminiResponse.text();
+        throw new Error(`Gemini API 호출 실패: ${text}`);
       }
 
       const geminiData = await geminiResponse.json();
       const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      
-      // JSON 추출 시도
-      let aiReview = aiText;
-      let rating = 0;
-      
+
+      let reviews: Array<{ style: string; content: string }> = [];
       try {
-        const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          aiReview = parsed.ai_review || aiText;
-          rating = parsed.rating || 0;
+        const m = aiText.match(/\{[\s\S]*\}/);
+        if (m) {
+          const parsed = JSON.parse(m[0]);
+          reviews = parsed.reviews || [];
         }
-      } catch (e) {
-        console.error('JSON 파싱 실패, 원본 텍스트 사용');
+      } catch (_e) {
+        console.error('AI 응답 JSON 파싱 실패:', _e);
       }
 
-      // DB에 저장 - content에 AI 리뷰 저장
-      const { data, error } = await supabaseClient
-        .from('reviews')
-        .insert({
-          user_id,
-          movie_title,
-          content: aiReview,  // AI가 생성한 리뷰를 content에 저장
-          rating,
-          recommend: `사용자 리뷰: ${user_review}`  // 사용자의 원본 리뷰는 recommend에 저장
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
       return new Response(
-        JSON.stringify({
-          success: true,
-          id: data.id,
-          ai_review: aiReview,
-          rating
-        }),
+        JSON.stringify({ success: true, reviews }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

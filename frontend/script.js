@@ -567,54 +567,26 @@ function setupEventListeners() {
         document.getElementById('applyAIReview').style.display = 'none';
 
         try {
-            // Gemini API 직접 호출 (Edge Function 대신)
-            const GEMINI_API_KEY = 'AIzaSyC0vNEDRhj8vQ6lNfB-iW1D6YIZy36oFNE';
-            const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
-            
-            // 프롬프트 생성 - 3가지 다른 스타일의 리뷰 요청
-            const prompt = `영화 "${movieTitle}"에 대한 리뷰를 3가지 다른 스타일로 작성해주세요.
-
-사용자가 선택한 감정 키워드: ${emotions.join(', ')}
-평점: ${score}/10
-추천 여부: ${recommend}
-
-각 리뷰는 다음 형식으로 작성해주세요:
-1. 첫 번째 리뷰: 감정적이고 개인적인 스타일 (150-200자)
-2. 두 번째 리뷰: 분석적이고 객관적인 스타일 (150-200자)
-3. 세 번째 리뷰: 짧고 강렬한 한줄평 스타일 (50-100자)
-
-응답은 반드시 다음 JSON 형식으로만 작성해주세요:
-{
-  "reviews": [
-    {"style": "감정적", "content": "리뷰 내용"},
-    {"style": "분석적", "content": "리뷰 내용"},
-    {"style": "한줄평", "content": "리뷰 내용"}
-  ]
-}`;
-
-            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+            // Supabase Edge Function 호출 (서버에서 Gemini 호출)
+            const res = await fetch(API.aiReview, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }]
+                    user_id: parseInt(Session.getUserId() || '0'),
+                    movie_title: movieTitle,
+                    emotions,
+                    score: parseInt(score, 10),
+                    recommend
                 })
             });
 
-            if (!response.ok) throw new Error('Gemini API 호출 실패');
+            if (!res.ok) {
+                const t = await res.text();
+                throw new Error('AI 함수 호출 실패: ' + t);
+            }
 
-            const data = await response.json();
-            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            
-            // JSON 추출
-            const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error('AI 응답 파싱 실패');
-            
-            const parsed = JSON.parse(jsonMatch[0]);
-            const reviews = parsed.reviews || [];
-            
-            if (reviews.length === 0) throw new Error('리뷰 생성 실패');
+            const { reviews } = await res.json();
+            if (!reviews || reviews.length === 0) throw new Error('리뷰 생성 실패');
             
             // AI 리뷰 결과 표시 (3가지 선택지)
             const html = `

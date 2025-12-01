@@ -201,7 +201,11 @@ function register() {
             // 2️⃣ 프로필 이미지를 Base64로 변환 (있으면)
             let profileImageData = null;
             if (profileFile && typeof uploadProfileImage === 'function') {
-                profileImageData = await uploadProfileImage(profileFile);
+                const uploadedUrl = await uploadProfileImage(profileFile);
+                if (uploadedUrl) {
+                    profileImageData = uploadedUrl;
+                    localStorage.setItem('profile_image', uploadedUrl);
+                }
             }
 
             // 3️⃣ 간단한 비밀번호 해시 (SHA-256)

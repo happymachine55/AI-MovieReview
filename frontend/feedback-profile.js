@@ -122,31 +122,64 @@ function displayProfileImage(profileImageUrl) {
 }
 
 // 프로필 이미지 업로드 (회원가입 시)
-function uploadProfileImage(file) {
+async function uploadProfileImage(file) {
     if (!file) return null;
-    
+
     // 파일 크기 체크 (5MB 제한)
     if (file.size > 5 * 1024 * 1024) {
         alert('이미지 크기는 5MB 이하여야 합니다.');
         return null;
     }
-    
+
     // 파일 형식 체크
     if (!file.type.startsWith('image/')) {
         alert('이미지 파일만 업로드 가능합니다.');
         return null;
     }
-    
+
     try {
-        // Base64로 인코딩
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = (e) => reject(new Error('파일 읽기 실패'));
-            reader.readAsDataURL(file);
-        });
+        // Supabase Storage에 업로드
+        const bucket = 'profiles';
+        const userId = Session.getUserId();
+        if (!userId) {
+            alert('로그인이 필요합니다.');
+            return null;
+        }
+
+        // 고유 파일 경로 구성: profiles/{userId}/profile_{timestamp}.{ext}
+        const ext = file.type.includes('png') ? 'png' : (file.type.includes('jpeg') ? 'jpg' : 'webp');
+        const path = `${userId}/profile_${Date.now()}.${ext}`;
+
+        const { data, error } = await supabase.storage
+            .from(bucket)
+            .upload(path, file, {
+                contentType: file.type,
+                upsert: true
+            });
+
+        if (error) {
+            console.error('Storage 업로드 오류:', error);
+            alert('이미지 업로드 실패: ' + (error.message || '알 수 없는 오류'));
+            return null;
+        }
+
+        // 퍼블릭 URL 가져오기
+        const { data: publicUrlData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(path);
+
+        const publicUrl = publicUrlData?.publicUrl || null;
+
+        if (!publicUrl) {
+            alert('이미지 URL 생성 실패');
+            return null;
+        }
+
+        // 로컬 저장 및 UI 반영을 위해 URL 반환
+        return publicUrl;
     } catch (error) {
         console.error('이미지 업로드 오류:', error);
+        alert('이미지 업로드 실패: ' + error.message);
         return null;
     }
 }

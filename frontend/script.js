@@ -567,26 +567,80 @@ function setupEventListeners() {
         document.getElementById('applyAIReview').style.display = 'none';
 
         try {
-            // 간단한 AI 리뷰 생성 (실제로는 Edge Function 필요)
-            const aiReviewText = `${emotions.join(', ')}한 영화였습니다. ${recommend === '추천' ? '강력히 추천합니다!' : '호불호가 갈릴 수 있습니다.'} 평점 ${score}점을 주고 싶습니다.`;
+            // Gemini API 직접 호출 (Edge Function 대신)
+            const GEMINI_API_KEY = 'AIzaSyC0vNEDRhj8vQ6lNfB-iW1D6YIZy36oFNE';
+            const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
             
-            // AI 리뷰 결과 표시
+            // 프롬프트 생성 - 3가지 다른 스타일의 리뷰 요청
+            const prompt = `영화 "${movieTitle}"에 대한 리뷰를 3가지 다른 스타일로 작성해주세요.
+
+사용자가 선택한 감정 키워드: ${emotions.join(', ')}
+평점: ${score}/10
+추천 여부: ${recommend}
+
+각 리뷰는 다음 형식으로 작성해주세요:
+1. 첫 번째 리뷰: 감정적이고 개인적인 스타일 (150-200자)
+2. 두 번째 리뷰: 분석적이고 객관적인 스타일 (150-200자)
+3. 세 번째 리뷰: 짧고 강렬한 한줄평 스타일 (50-100자)
+
+응답은 반드시 다음 JSON 형식으로만 작성해주세요:
+{
+  "reviews": [
+    {"style": "감정적", "content": "리뷰 내용"},
+    {"style": "분석적", "content": "리뷰 내용"},
+    {"style": "한줄평", "content": "리뷰 내용"}
+  ]
+}`;
+
+            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                })
+            });
+
+            if (!response.ok) throw new Error('Gemini API 호출 실패');
+
+            const data = await response.json();
+            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            
+            // JSON 추출
+            const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error('AI 응답 파싱 실패');
+            
+            const parsed = JSON.parse(jsonMatch[0]);
+            const reviews = parsed.reviews || [];
+            
+            if (reviews.length === 0) throw new Error('리뷰 생성 실패');
+            
+            // AI 리뷰 결과 표시 (3가지 선택지)
             const html = `
-                <div class="ai-review-box">
-                    <h4>생성된 리뷰</h4>
-                    <p>${aiReviewText}</p>
-                    <p><strong>평점: ${score}/10</strong></p>
+                <div class="ai-review-options">
+                    <h4>🎬 생성된 관람평 (하나를 선택하세요)</h4>
+                    ${reviews.map((review, index) => `
+                        <div class="ai-review-box">
+                            <input type="radio" name="aiReviewRadio" id="review${index}" value="${index}">
+                            <label for="review${index}">
+                                <strong>[${review.style}]</strong>
+                                <p>${review.content}</p>
+                            </label>
+                        </div>
+                    `).join('')}
+                    <p style="margin-top:10px;color:#666;"><strong>평점: ${score}/10 | ${recommend}</strong></p>
                 </div>
             `;
             document.getElementById('aiReviewResult').innerHTML = html;
             document.getElementById('applyAIReview').style.display = 'inline-block';
             
             // AI 리뷰를 전역 변수에 저장
-            window.generatedAIReview = aiReviewText;
-            window.generatedRating = score;
+            window.generatedAIReviews = reviews;
+            window.generatedRating = parseInt(score, 10);
         } catch (e) {
             console.error('AI 리뷰 생성 오류:', e);
-            document.getElementById('aiReviewResult').innerHTML = 'AI 리뷰 생성 실패';
+            document.getElementById('aiReviewResult').innerHTML = `<p style="color:red;">AI 리뷰 생성 실패: ${e.message}</p>`;
         }
     };
 
@@ -631,17 +685,26 @@ function setupEventListeners() {
             alert('관람평을 선택하세요.');
             return;
         }
-        const idx = parseInt(checkedRadio.value, 10);
-        const reviewDivs = document.querySelectorAll('.review-content');
-        let reviewText = reviewDivs[idx].innerText;
-    
-        // ✅ 사용자가 AI 생성 모달에서 선택한 평점 사용 (기본값 5점)
-        let rating = lastSelectedScore || 5;
         
-        console.log('AI 리뷰 적용 - 저장된 평점:', rating); // 디버깅
-        console.log('AI 리뷰 적용 - 저장된 추천:', lastSelectedRecommend); // 디버깅
+        const idx = parseInt(checkedRadio.value, 10);
+        
+        // ✅ 저장된 AI 리뷰 배열에서 선택한 리뷰 가져오기
+        if (!window.generatedAIReviews || !window.generatedAIReviews[idx]) {
+            alert('리뷰를 찾을 수 없습니다.');
+            return;
+        }
+        
+        const selectedReview = window.generatedAIReviews[idx];
+        const reviewText = selectedReview.content;
     
-        // ✅ 사용자가 AI 생성 모달에서 선택한 추천여부 사용 (기본값 "추천함")
+        // ✅ 사용자가 AI 생성 모달에서 선택한 평점 사용
+        let rating = lastSelectedScore || window.generatedRating || 5;
+        
+        console.log('AI 리뷰 적용 - 선택한 리뷰:', selectedReview);
+        console.log('AI 리뷰 적용 - 저장된 평점:', rating);
+        console.log('AI 리뷰 적용 - 저장된 추천:', lastSelectedRecommend);
+    
+        // ✅ 사용자가 AI 생성 모달에서 선택한 추천여부 사용
         let recommend = lastSelectedRecommend || "추천함";
     
         // 리뷰 입력란에 텍스트 반영
@@ -947,8 +1010,9 @@ function loadBoardData(page = 1) {
             
                 boardContent.innerHTML = '';
                 currentPosts.forEach(post => {
+                    const postUsername = post.users?.username || '익명';
                     // ✅ 본인이 작성한 글인지 확인 (username 비교)
-                    const isOwner = window.currentUsername && window.currentUsername === post.username;
+                    const isOwner = window.currentUsername && window.currentUsername === postUsername;
                     const deleteBtnHtml = isOwner
                         ? `<button class="delete-post-btn" data-id="${post.id}" style="color: white; background: #d9230f; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer;">삭제</button>`
                         : '';
@@ -956,7 +1020,7 @@ function loadBoardData(page = 1) {
                     row.innerHTML = `
                     <td>${post.id}</td>
                     <td><a href="#" class="post-link" data-id="${post.id}">${post.title}</a></td>
-                    <td>${post.username || "익명"}</td>
+                    <td>${postUsername}</td>
                     <td>${(post.created_at || "").slice(0, 10)}</td>
                     <td>${post.views || 0}</td>
                     <td>${post.recommend || 0}</td>
@@ -979,20 +1043,23 @@ function loadBoardData(page = 1) {
             
                 // 게시글 삭제 이벤트 등록
                 document.querySelectorAll('.delete-post-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const postId = this.dataset.id;
+                    btn.addEventListener('click', async function () {
+                        const postId = parseInt(this.dataset.id);
                         if (confirm('정말 삭제하시겠습니까?')) {
-                            fetch(`/api/posts/${postId}`, { method: 'DELETE' })
-                                .then(res => res.json())
-                                .then(result => {
-                                    if (result.success) {
-                                        alert('게시글이 삭제되었습니다!');
-                                        loadBoardData(currentPage); // 현재 페이지 유지하며 새로고침
-                                    } else {
-                                        alert('삭제 실패!');
-                                    }
-                                })
-                                .catch(() => alert('서버 오류 발생!'));
+                            try {
+                                const { error } = await supabase
+                                    .from('posts')
+                                    .delete()
+                                    .eq('id', postId);
+                                
+                                if (error) throw error;
+                                
+                                alert('게시글이 삭제되었습니다!');
+                                loadBoardData(currentPage); // 현재 페이지 유지하며 새로고침
+                            } catch (err) {
+                                console.error('삭제 오류:', err);
+                                alert('삭제 실패: ' + err.message);
+                            }
                         }
                     });
                 });
@@ -1173,9 +1240,26 @@ function loadBoardData(page = 1) {
             }
             
             // username을 comments 객체에 직접 설정
-            const commentsWithUsername = comments.map(comment => ({
-                ...comment,
-                username: comment.users?.username || '익명'
+            const commentsWithUsername = await Promise.all(comments.map(async comment => {
+                // 좋아요/싫어요 카운트 가져오기
+                const { count: likesCount } = await supabase
+                    .from('review_likes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('review_id', comment.id)
+                    .eq('like_type', 'like');
+                
+                const { count: dislikesCount } = await supabase
+                    .from('review_likes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('review_id', comment.id)
+                    .eq('like_type', 'dislike');
+                
+                return {
+                    ...comment,
+                    username: comment.users?.username || '익명',
+                    likes_count: likesCount || 0,
+                    dislikes_count: dislikesCount || 0
+                };
             }));
             
             console.log('📦 받은 리뷰 데이터:', commentsWithUsername);
@@ -1364,41 +1448,57 @@ function loadBoardData(page = 1) {
             window.history.pushState({ page: 'post-detail', postId }, '', `/?postId=${postId}`);
         }
 
-        fetch(`/api/posts/${postId}`)
-            .then(res => {
-                if (!res.ok) throw new Error('게시물을 찾을 수 없습니다.');
-                return res.json();
-            })
-            .then(post => {
-                let html = `
-                <div class="post-detail-header">
-                    <h1 class="post-detail-title">${post.title}</h1>
-                    <div class="post-detail-meta">
-                        <span class="post-detail-author">${post.username || '익명'}</span>
-                        <span class="post-detail-date">${new Date(post.created_at).toLocaleString('ko-KR')}</span>
-                    </div>
-                    <div class="like-buttons" style="margin-top: 15px;">
-                        <button class="post-like-btn" data-post-id="${post.id}" data-type="like">
-                            <i class="fas fa-thumbs-up"></i>
-                            <span class="like-count">${post.likes_count || 0}</span>
-                        </button>
-                        <button class="post-dislike-btn" data-post-id="${post.id}" data-type="dislike">
-                            <i class="fas fa-thumbs-down"></i>
-                            <span class="dislike-count">${post.dislikes_count || 0}</span>
-                        </button>
-                    </div>
+    supabase
+        .from('posts')
+        .select(`
+            *,
+            users(username)
+        `)
+        .eq('id', postId)
+        .single()
+        .then(async ({ data: post, error }) => {
+            if (error) throw new Error('게시물을 찾을 수 없습니다.');
+            
+            // 좋아요/싫어요 카운트 가져오기
+            const { count: likesCount } = await supabase
+                .from('post_likes')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', postId)
+                .eq('like_type', 'like');
+            
+            const { count: dislikesCount } = await supabase
+                .from('post_likes')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', postId)
+                .eq('like_type', 'dislike');
+            
+            let html = `
+            <div class="post-detail-header">
+                <h1 class="post-detail-title">${post.title}</h1>
+                <div class="post-detail-meta">
+                    <span class="post-detail-author">${post.users?.username || '익명'}</span>
+                    <span class="post-detail-date">${new Date(post.created_at).toLocaleString('ko-KR')}</span>
                 </div>
-                <div class="post-detail-body">
-                    <p>${post.content.replace(/\n/g, '<br>')}</p>
+                <div class="like-buttons" style="margin-top: 15px;">
+                    <button class="post-like-btn" data-post-id="${post.id}" data-type="like">
+                        <i class="fas fa-thumbs-up"></i>
+                        <span class="like-count">${likesCount || 0}</span>
+                    </button>
+                    <button class="post-dislike-btn" data-post-id="${post.id}" data-type="dislike">
+                        <i class="fas fa-thumbs-down"></i>
+                        <span class="dislike-count">${dislikesCount || 0}</span>
+                    </button>
                 </div>
-            `;
-                postDetailContent.innerHTML = html;
+            </div>
+            <div class="post-detail-body">
+                <p>${post.content.replace(/\n/g, '<br>')}</p>
+            </div>
+        `;
+            postDetailContent.innerHTML = html;
 
-                // ✅ 게시글 좋아요 상태 불러오기 및 이벤트 연결
-                loadPostLikeState(postId);
-                attachPostLikeEvents(postId);
-
-                // ✅ URL에 게시글 ID 추가
+            // ✅ 게시글 좋아요 상태 불러오기 및 이벤트 연결
+            loadPostLikeState(postId);
+            attachPostLikeEvents(postId);                // ✅ URL에 게시글 ID 추가
                 //window.history.pushState({ page: 'post-detail', postId }, '', `/?postId=${postId}`);
 
                 // ✅ 게시글을 성공적으로 불러온 후, 댓글 기능을 활성화합니다.
@@ -1461,16 +1561,25 @@ function loadBoardData(page = 1) {
             moviesResultGrid.innerHTML = '<p>일치하는 영화가 없습니다.</p>';
         }
 
-        // 3. 게시글 검색 (서버 API에 요청)
+        // 3. 게시글 검색 (Supabase 직접 조회)
         try {
-            const res = await fetch(`/api/search/posts?q=${encodeURIComponent(searchTerm)}`);
-            const postResults = await res.json();
-            if (postResults.length > 0) {
+            const { data: postResults, error } = await supabase
+                .from('posts')
+                .select(`
+                    *,
+                    users(username)
+                `)
+                .or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            if (postResults && postResults.length > 0) {
                 postsResultTable.innerHTML = postResults.map(post => `
                 <tr>
                     <td>${post.id}</td>
                     <td><a href="#" class="post-link" data-id="${post.id}">${post.title}</a></td>
-                    <td>${post.username || "익명"}</td>
+                    <td>${post.users?.username || "익명"}</td>
                     <td>${(post.created_at || "").slice(0, 10)}</td>
                 </tr>
             `).join('');
@@ -1692,73 +1801,121 @@ function loadBoardData(page = 1) {
 // ========================================================
 
 // 리뷰 좋아요 상태 불러오기
-function loadReviewLikeStates(reviews) {
+async function loadReviewLikeStates(reviews) {
     if (!window.currentUserId) return; // 로그인 안했으면 스킵
 
-    reviews.forEach(review => {
-        fetch(`/api/reviews/${review.id}/like-status`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.liked) {
-                    const likeBtn = document.querySelector(`.like-btn[data-review-id="${review.id}"]`);
-                    if (likeBtn && data.like_type === 'like') {
-                        likeBtn.classList.add('active');
-                    }
-                    const dislikeBtn = document.querySelector(`.dislike-btn[data-review-id="${review.id}"]`);
-                    if (dislikeBtn && data.like_type === 'dislike') {
-                        dislikeBtn.classList.add('active');
-                    }
+    for (const review of reviews) {
+        try {
+            const { data, error } = await supabase
+                .from('review_likes')
+                .select('like_type')
+                .eq('review_id', review.id)
+                .eq('user_id', window.currentUserId)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data) {
+                const likeBtn = document.querySelector(`.like-btn[data-review-id="${review.id}"]`);
+                if (likeBtn && data.like_type === 'like') {
+                    likeBtn.classList.add('active');
                 }
-            })
-            .catch(err => console.error('좋아요 상태 로드 오류:', err));
-    });
+                const dislikeBtn = document.querySelector(`.dislike-btn[data-review-id="${review.id}"]`);
+                if (dislikeBtn && data.like_type === 'dislike') {
+                    dislikeBtn.classList.add('active');
+                }
+            }
+        } catch (err) {
+            console.error('좋아요 상태 로드 오류:', err);
+        }
+    }
 }
 
 // 리뷰 좋아요/싫어요 버튼 이벤트 연결
 function attachReviewLikeEvents() {
     document.querySelectorAll('.like-btn, .dislike-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             if (!window.currentUserId) {
                 alert('로그인이 필요합니다!');
                 return;
             }
 
-            const reviewId = this.dataset.reviewId;
+            const reviewId = parseInt(this.dataset.reviewId);
             const likeType = this.dataset.type; // 'like' or 'dislike'
             const isActive = this.classList.contains('active');
 
-            // 좋아요/싫어요 토글 (같은 버튼 다시 클릭하면 취소)
-            fetch(`/api/reviews/${reviewId}/like`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ like_type: likeType })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        // 서버에서 받은 최신 카운트로 업데이트
-                        const likeBtn = document.querySelector(`.like-btn[data-review-id="${reviewId}"]`);
-                        const dislikeBtn = document.querySelector(`.dislike-btn[data-review-id="${reviewId}"]`);
-                        
-                        if (likeBtn) {
-                            likeBtn.querySelector('.like-count').textContent = data.likes_count;
-                            likeBtn.classList.remove('active');
-                        }
-                        if (dislikeBtn) {
-                            dislikeBtn.querySelector('.dislike-count').textContent = data.dislikes_count;
-                            dislikeBtn.classList.remove('active');
-                        }
+            try {
+                // 1. 기존 좋아요 상태 확인
+                const { data: existingLike } = await supabase
+                    .from('review_likes')
+                    .select('*')
+                    .eq('review_id', reviewId)
+                    .eq('user_id', window.currentUserId)
+                    .maybeSingle();
 
-                        // 추가되었으면 현재 버튼 활성화 (removed면 활성화 안함 = 토글 취소)
-                        if (data.action === 'added' || data.action === 'changed') {
-                            this.classList.add('active');
-                        }
+                let action = '';
+
+                if (existingLike) {
+                    if (existingLike.like_type === likeType) {
+                        // 같은 버튼 클릭 → 취소
+                        await supabase
+                            .from('review_likes')
+                            .delete()
+                            .eq('review_id', reviewId)
+                            .eq('user_id', window.currentUserId);
+                        action = 'removed';
+                    } else {
+                        // 다른 버튼 클릭 → 변경
+                        await supabase
+                            .from('review_likes')
+                            .update({ like_type: likeType })
+                            .eq('review_id', reviewId)
+                            .eq('user_id', window.currentUserId);
+                        action = 'changed';
                     }
-                })
-                .catch(err => {
-                    console.error('좋아요 처리 오류:', err);
-                    alert('좋아요 처리 실패!');
-                });
+                } else {
+                    // 새로 추가
+                    await supabase
+                        .from('review_likes')
+                        .insert({ review_id: reviewId, user_id: window.currentUserId, like_type: likeType });
+                    action = 'added';
+                }
+
+                // 2. 최신 카운트 가져오기
+                const { data: likesCount } = await supabase
+                    .from('review_likes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('review_id', reviewId)
+                    .eq('like_type', 'like');
+
+                const { data: dislikesCount } = await supabase
+                    .from('review_likes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('review_id', reviewId)
+                    .eq('like_type', 'dislike');
+
+                // 3. UI 업데이트
+                const likeBtn = document.querySelector(`.like-btn[data-review-id="${reviewId}"]`);
+                const dislikeBtn = document.querySelector(`.dislike-btn[data-review-id="${reviewId}"]`);
+                
+                if (likeBtn) {
+                    likeBtn.querySelector('.like-count').textContent = likesCount?.count || 0;
+                    likeBtn.classList.remove('active');
+                }
+                if (dislikeBtn) {
+                    dislikeBtn.querySelector('.dislike-count').textContent = dislikesCount?.count || 0;
+                    dislikeBtn.classList.remove('active');
+                }
+
+                // 추가되었거나 변경되었으면 현재 버튼 활성화
+                if (action === 'added' || action === 'changed') {
+                    this.classList.add('active');
+                }
+
+            } catch (err) {
+                console.error('좋아요 처리 오류:', err);
+                alert('좋아요 처리 실패: ' + err.message);
+            }
         });
     });
 }
@@ -1768,69 +1925,119 @@ function attachReviewLikeEvents() {
 // ========================================================
 
 // 게시글 좋아요 상태 불러오기
-function loadPostLikeState(postId) {
+async function loadPostLikeState(postId) {
     if (!window.currentUserId) return;
 
-    fetch(`/api/posts/${postId}/like-status`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.liked) {
-                const likeBtn = document.querySelector(`.post-like-btn[data-post-id="${postId}"]`);
-                const dislikeBtn = document.querySelector(`.post-dislike-btn[data-post-id="${postId}"]`);
-                
-                if (likeBtn && data.like_type === 'like') {
-                    likeBtn.classList.add('active');
-                }
-                if (dislikeBtn && data.like_type === 'dislike') {
-                    dislikeBtn.classList.add('active');
-                }
+    try {
+        const { data, error } = await supabase
+            .from('post_likes')
+            .select('like_type')
+            .eq('post_id', postId)
+            .eq('user_id', window.currentUserId)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+            const likeBtn = document.querySelector(`.post-like-btn[data-post-id="${postId}"]`);
+            const dislikeBtn = document.querySelector(`.post-dislike-btn[data-post-id="${postId}"]`);
+            
+            if (likeBtn && data.like_type === 'like') {
+                likeBtn.classList.add('active');
             }
-        })
-        .catch(err => console.error('게시글 좋아요 상태 로드 오류:', err));
+            if (dislikeBtn && data.like_type === 'dislike') {
+                dislikeBtn.classList.add('active');
+            }
+        }
+    } catch (err) {
+        console.error('게시글 좋아요 상태 로드 오류:', err);
+    }
 }
 
 // 게시글 좋아요/싫어요 버튼 이벤트 연결
 function attachPostLikeEvents(postId) {
     document.querySelectorAll('.post-like-btn, .post-dislike-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             if (!window.currentUserId) {
                 alert('로그인이 필요합니다!');
                 return;
             }
 
             const likeType = this.dataset.type; // 'like' or 'dislike'
+            const postIdInt = parseInt(postId);
 
-            fetch(`/api/posts/${postId}/like`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ like_type: likeType })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        // 서버에서 받은 최신 카운트로 업데이트
-                        const likeBtn = document.querySelector(`.post-like-btn[data-post-id="${postId}"]`);
-                        const dislikeBtn = document.querySelector(`.post-dislike-btn[data-post-id="${postId}"]`);
-                        
-                        if (likeBtn) {
-                            likeBtn.querySelector('.like-count').textContent = data.likes_count;
-                            likeBtn.classList.remove('active');
-                        }
-                        if (dislikeBtn) {
-                            dislikeBtn.querySelector('.dislike-count').textContent = data.dislikes_count;
-                            dislikeBtn.classList.remove('active');
-                        }
+            try {
+                // 1. 기존 좋아요 상태 확인
+                const { data: existingLike } = await supabase
+                    .from('post_likes')
+                    .select('*')
+                    .eq('post_id', postIdInt)
+                    .eq('user_id', window.currentUserId)
+                    .maybeSingle();
 
-                        // 추가되었으면 현재 버튼 활성화 (removed면 활성화 안함 = 토글 취소)
-                        if (data.action === 'added' || data.action === 'changed') {
-                            this.classList.add('active');
-                        }
+                let action = '';
+
+                if (existingLike) {
+                    if (existingLike.like_type === likeType) {
+                        // 같은 버튼 클릭 → 취소
+                        await supabase
+                            .from('post_likes')
+                            .delete()
+                            .eq('post_id', postIdInt)
+                            .eq('user_id', window.currentUserId);
+                        action = 'removed';
+                    } else {
+                        // 다른 버튼 클릭 → 변경
+                        await supabase
+                            .from('post_likes')
+                            .update({ like_type: likeType })
+                            .eq('post_id', postIdInt)
+                            .eq('user_id', window.currentUserId);
+                        action = 'changed';
                     }
-                })
-                .catch(err => {
-                    console.error('게시글 좋아요 처리 오류:', err);
-                    alert('좋아요 처리 실패!');
-                });
+                } else {
+                    // 새로 추가
+                    await supabase
+                        .from('post_likes')
+                        .insert({ post_id: postIdInt, user_id: window.currentUserId, like_type: likeType });
+                    action = 'added';
+                }
+
+                // 2. 최신 카운트 가져오기
+                const { count: likesCount } = await supabase
+                    .from('post_likes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('post_id', postIdInt)
+                    .eq('like_type', 'like');
+
+                const { count: dislikesCount } = await supabase
+                    .from('post_likes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('post_id', postIdInt)
+                    .eq('like_type', 'dislike');
+
+                // 3. UI 업데이트
+                const likeBtn = document.querySelector(`.post-like-btn[data-post-id="${postId}"]`);
+                const dislikeBtn = document.querySelector(`.post-dislike-btn[data-post-id="${postId}"]`);
+                
+                if (likeBtn) {
+                    likeBtn.querySelector('.like-count').textContent = likesCount || 0;
+                    likeBtn.classList.remove('active');
+                }
+                if (dislikeBtn) {
+                    dislikeBtn.querySelector('.dislike-count').textContent = dislikesCount || 0;
+                    dislikeBtn.classList.remove('active');
+                }
+
+                // 추가되었거나 변경되었으면 현재 버튼 활성화
+                if (action === 'added' || action === 'changed') {
+                    this.classList.add('active');
+                }
+
+            } catch (err) {
+                console.error('게시글 좋아요 처리 오류:', err);
+                alert('좋아요 처리 실패: ' + err.message);
+            }
         });
     });
 }
